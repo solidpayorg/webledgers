@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Web Ledgers v0.1</title>
+  <script src='https://www.w3.org/Tools/respec/respec-w3c-common' class='remove'></script>
+  <script class='remove'>
+    var respecConfig = {
+      specStatus: "CG-DRAFT",
+      editors: [{
+        name: "Melvin Carvalho",
+        url: "https://melvincarvalho.com/#me",
+        mailto: "melvincarvalho@gmail.com"
+      }],
+      authors: [{
+        name: "Melvin Carvalho",
+        url: "https://melvincarvalho.com/#me",
+        mailto: "melvincarvalho@gmail.com"
+      }],
+      wg: 'W3C Payments Community Group',
+      wgURI: 'https://www.w3.org/community/webpayments/',
+      wgPublicList: "public-webpayments",
+      processVersion: 2019,
+      edDraftURI: "https://github.com/solidpayorg/webvouchers/",
+      shortName: "webvouchers",
+      issueBase: "https://github.com/solidpayorg/webvouchers/"
+    };
+  </script>
+
+  <style>
+    .turtle .hll {
+      background-color: #ffffcc
+    }
+
+    pre .highlight {
+      font-weight: bold;
+      color: green;
+    }
+
+    pre .comment {
+      color: SteelBlue;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+  </style>
+
+</head>
+
+<body>
+  <section id='abstract'>
+    <i><b>A ledger of URIs for the web</b></i>.
+    <p>
+      Web Ledgers is a way to create a ledger using URIs as keys on the web.
+
+      <p>
+        Web Ledgers are a new type of ledger for payments across the web. These new ledgers are
+        designed to enable balances to be stored from many different platforms, and acts as a glue between eco systms.
+      </p>
+      <p>
+        This document specifies a format, interoperability guide lines, and operations that Web ledgers may support.
+      </p>
+
+    </p>
+  </section>
+
+  <section id='sotd'>
+    <p>
+      This document in an informal draft discussed in the <a href="https://www.w3.org/community/webpayments/">w3c web
+        payments
+        community group</a>.
+    </p>
+  </section>
+  <section>
+    <h2>Introduction</h2>
+
+    <p>One time codes are a popular way of solving one off problems on the web. And example might be sending someone a
+      code
+      to log in to a system, or one to reset a password or one to creating a private address for a calendar. However
+      there
+      exists no generic URN on the web to encode such a one time code such that it can be used for redeeming a payment,
+      good or service.
+    </p>
+    <p>
+      This document specifies a format, and operations that Web Vouchers may support.
+    </p>
+
+    <section>
+      <h3>Overview</h3>
+      This spec is a work in progress.
+
+
+    </section>
+
+
+
+    <section class="informative">
+      <h2>
+        Design Goals
+      </h2>
+
+      <p>
+        Web Vouchers are a component of larger systems, such as
+        the Linked Data ecosystem [[LINKED-DATA]], which have driven
+        the design goals for this specification. This section summarizes the
+        primary design goals for this specification.
+      </p>
+
+      <table class="simple">
+        <thead>
+          <tr>
+            <th>
+              Goal
+            </th>
+            <th>
+              Description
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr>
+            <td>
+              Decentralization
+            </td>
+            <td>
+              The voucher should not be server specific, though it may be.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Control
+            </td>
+            <td>
+              Only the entities that know the voucher URN can use it.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Privacy
+            </td>
+            <td>
+              The Voucher URN is kept private between those that honor it.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Security
+            </td>
+            <td>
+              Transmission of a URN will be over encrypted formats.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Proof-based
+            </td>
+            <td>
+              Using PKI, hash, or other trap door function, it is possible to identify a URN without being able to spend
+              it.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Discoverability
+            </td>
+            <td>
+              It may be possible to discover more information about a URN in a proof based network, or using an
+              authoritative server.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Interoperability
+            </td>
+            <td>
+              URIs and URNs are used to provide wide interoperability with existing systems on the web.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Portability
+            </td>
+            <td>
+              Be system and network-independent and
+              enable entities to use their digital identifiers with any
+              system that supports Web Vouchers.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Simplicity
+            </td>
+            <td>
+              Favor a reduced set of simple features in order to make the technology
+              easier to understand, implement, and deploy.
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              Extensibility
+            </td>
+            <td>
+              When possible, enable extensibility
+              provided it does not greatly hinder interoperability,
+              portability, or simplicity.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+
+    <section>
+      <h2>Design Considerations</h2>
+
+      TODO
+
+
+    </section>
+
+    <section>
+      <h3>Ledger Format</h3>
+
+
+    </section>
+
+    <section>
+      <h3>Discovery</h3>
+
+
+    </section>
+
+
+    <section>
+      <h3>Implementations</h3>
+
+
+    </section>
+
+    <section>
+      <h3>Acknowledgments</h3>
+
+
+
+    </section>
+
+
+
+
+</body>
+
+</html>
