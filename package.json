@@ -1,0 +1,23 @@
+{
+  "name": "webledgers",
+  "version": "0.0.1",
+  "description": "web ledgers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/solidpayorg/webledgers.git"
+  },
+  "keywords": [
+    "web",
+    "ledgers"
+  ],
+  "author": "Melvin Carvalho <melvincarvalho@gmail.com> (https://melvincarvalho.com/#me)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/solidpayorg/webledgers/issues"
+  },
+  "homepage": "https://github.com/solidpayorg/webledgers#readme"
+}
