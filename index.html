@@ -221,54 +221,47 @@
   </section>
 
   <section id="design" class="informative">
-    <h3>Data Model</h3>
+    <h3>Terminology</h3>
 
-    <section>
-      <h3>Terminology</h3>
-
-
-
-      <dl class="termlist">
-        <dt><dfn lt="balance|balance">balance</dfn></dt>
-        <dd>
-          Each URI maps to a balance in the Web Ledger. A balance is a numerical value with an explicit or implicit
-          unit of currency. If not unit is stated the unit MAY be taken from the popular electronic coin, bitcoin, and
-          is
-          equal to 1 satoshi.
-        </dd>
-        <dt><dfn lt="decentralized system|decentralized systems">decentralized system</dfn></dt>
-        <dd>
-          A system in which lower level components operate on local information to
-          accomplish global goals. For example, an ant colony is a decentralized system
-          as there is no central control determining when food must be collected or
-          how new tunnels should be excavated.
-        </dd>
-      </dl>
+    <h3>Terminology</h3>
 
 
 
+    <dl class="termlist">
+      <dt><dfn lt="agent|agent">agent</dfn></dt>
+      <dd>
+        An Agent is a URI that denotes a person, machine or account on the web.
+      </dd>
+      <dt><dfn lt="balance|balance">balance</dfn></dt>
+      <dd>
+        Each URI maps to a balance in the Web Ledger. A balance is a numerical value with an explicit or implicit
+        unit of currency. If not unit is stated the unit MAY be taken from the popular electronic coin, bitcoin, and
+        is
+        equal to 1 satoshi.
+      </dd>
+      <dt><dfn lt="currency|currency">currency</dfn></dt>
+      <dd>
+        A currency is denomination of a given balance
+      </dd>
+      <dt><dfn lt="decentralized system|decentralized systems">decentralized system</dfn></dt>
+      <dd>
+        A system in which lower level components operate on local information to
+        accomplish global goals. For example, an ant colony is a decentralized system
+        as there is no central control determining when food must be collected or
+        how new tunnels should be excavated.
+      </dd>
+    </dl>
 
-    </section>
-
-    <section>
-      <h3>Units</h3>
-    </section>
-
-    <section>
-      <h3>Currency</h3>
-    </section>
-
-  </section>
-
-
-  <section id="implementations" class="informative">
-    <h3>Implementations</h3>
 
 
   </section>
 
-  <section id="examples" class="appendix informative">
-    <h2>Examples</h2>
+  <section id="Data Model" class="Data Model">
+    <h2>Data Model</h2>
+
+    The Web Ledgers data model is designed to have varying layers of complexity depending on the use case. Each
+    serialization is has different trade offs.
+
     <h3>CSV</h3>
 
     <p>
@@ -289,6 +282,38 @@
         { "https://www.w3.org/People/Berners-Lee/card#i" : 100 }
         ]
     </code>
+  </section>
+
+
+
+  <section id="implementations" class="informative">
+    <h3>Implementations</h3>
+
+
+  </section>
+
+  <section id="examples" class="appendix informative">
+    <h2>Examples</h2>
+    <h3>WebID</h3>
+
+    <p>
+      A WebID in CSV Format.
+    </p>
+
+    <code>
+        https://www.w3.org/People/Berners-Lee/card#i 100
+    </code>
+
+    <h3>Email</h3>
+
+    <p>
+      An email in CSV Format.
+    </p>
+
+    <code>
+        mailto:timbl@w3.org 100
+    </code>
+
   </section>
 
   <section id="examples" class="appendix informative">
