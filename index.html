@@ -274,31 +274,31 @@
       A simple CSV format for a ledger consists of a URI and a balance.
     </p>
 
-    <code>
-        https://www.w3.org/People/Berners-Lee/card#i 100
-    </code>
+    <pre <pre class="example highlight" title="Example of CSV based web ledger">
+    https://www.w3.org/People/Berners-Lee/card#i 100
+    </pre>
 
     <h3>JSON</h3>
 
     <p>
       A simple JSON format for a ledger consists of a URI and a balance.
     </p>
-    <code>
+    <pre class="example highlight" title="Exammple of JSON based web ledger">
         [
         { "https://www.w3.org/People/Berners-Lee/card#i" : 100 }
         ]
-    </code>
+    </pre>
 
     <h3>RDF</h3>
 
     <p>
       RDF is a framework for interoperability on the web. The serialization in this example it Turtle.
     </p>
-    <code>
-         <https://www.w3.org/People/Berners-Lee/card#i> :balance 100 .
-    </code>
+    <pre class="example highlight" title="Example of Turtle based web ledger">
+        &lt;https://www.w3.org/People/Berners-Lee/card#i> :balance 100 .
+    </pre>
 
-    TODO : explain :balance
+    <p>TODO : explain :balance</p>
 
 
   </section>
