@@ -51,13 +51,25 @@
 
 <body>
   <section id='abstract'>
-    <i><b>A mapping of URIs to balances for the web</b></i>.
+    <p>
+      <i><b>A mapping of URIs to balances for the web</b></i>
+    </p>
 
-    <img src="https://www.w3.org/DesignIssues/diagrams/social/simondseconoart-small.png" />
+    <p>
+      <img src="https://www.w3.org/DesignIssues/diagrams/social/simondseconoart-small.png" />
+    </p>
+
 
     <p>
       Alice sends some credits to Bob on facebook. Bob sends to Carol's email. Carol sends Dan's mobile. Dan sends to
       Erin on Telegram. And so on.
+    </p>
+
+    <p>
+      The web has evolved as a number of large silos operating socially with users inside each silo. This is analagous
+      to a phone system within a specific country. In order to call someone in another country, you need to use a
+      country code which people agree on. In the same way on the web URIs can operate as global codes, that act as a way
+      to connect different silos together.
     </p>
 
     <p>
@@ -67,13 +79,6 @@
       that allow the ledger to transcend any given local ecosystem, allowing interoperable economies to take shape.
     </p>
 
-    <p>
-      Web Ledgers are a new type of ledger for the web. These new ledgers are
-      designed to enable balances to be stored from many different contexts, and acts as a glue between ecosystems. The
-      system is simple, each URI belongs to a protocol or system, and is agreed by those making interopeable software
-      systems. The balance is simply an integer with an implicit or explicit currency
-      .
-    </p>
     <p>
       This document specifies a format, interoperability guide lines, and operations that Web ledgers may support.
     </p>
@@ -141,7 +146,7 @@
               Security
             </td>
             <td>
-              Transmission of a URN will be over encrypted formats.
+              Transmission of a ledger changes tend to be over encrypted channels.
             </td>
           </tr>
 
@@ -150,8 +155,8 @@
               Discoverability
             </td>
             <td>
-              It may be possible to discover more information about a URI in a proof based network, or using an
-              authoritative server.
+              It may be possible to discover more information about a URI by standard mechanisms of dereferencing,
+              including, but not limited to HTTP.
             </td>
           </tr>
 
@@ -321,6 +326,11 @@
       }
     </code>
 
+    <h3>Instagram</h3>
+
+    <p>
+      Ihe picture sharing site.
+    </p>
 
     <h3>Stack Overflow</h3>
 
