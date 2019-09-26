@@ -252,7 +252,10 @@
     <h3>CSV</h3>
 
     <p>
-      A simple CSV format for a ledger consists of a URI and a balance.
+      CSV is probably the most simple format possible for a web ledger. It is simply a 2 column file (or database), the
+      first column MUST be a URI, and the 2nd column is a balance. It is by definition the simplest ledger one can keep.
+      The currency in this scenario is not explicity stated, but assumed across the system. The default is to assume
+      that balances are in satoshis, if no other information is found.
     </p>
 
     <pre <pre class="example highlight" title="Example of CSV based web ledger">
