@@ -134,6 +134,16 @@
         <tbody>
           <tr>
             <td>
+              Simplicity
+            </td>
+            <td>
+              The ledger is designed to be as simple as possible.  As such you just need two data points.  The user and the balance.
+            </td>
+          </tr>
+
+
+          <tr>
+            <td>
               Decentralization
             </td>
             <td>
@@ -177,16 +187,6 @@
               Be system and network-independent and
               enable entities to use their digital identifiers with any
               system that supports Web Ledgers.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Simplicity
-            </td>
-            <td>
-              Favor a reduced set of simple features to make the technology
-              easier to understand, implement, and deploy.
             </td>
           </tr>
 
@@ -261,6 +261,17 @@
     <pre <pre class="example highlight" title="Example of CSV based web ledger">
     https://www.w3.org/People/Berners-Lee/card#i 100
     </pre>
+
+    <h3>JSON-LD</h3>
+    
+    <p>
+      JSON-LD format for a ledger consists of a URI and a balance.
+    </p>
+    <pre class="example highlight" title="Exammple of JSON based web ledger">
+            { "@id": "https://www.w3.org/People/Berners-Lee/card#i",
+              "https://w3id.org/ledger#balance": [{ "@value": 100 }] }
+        </pre>
+
 
     <h3>JSON</h3>
 
