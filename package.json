@@ -1,6 +1,6 @@
 {
   "name": "webledgers",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "web ledgers",
   "main": "index.js",
   "scripts": {
