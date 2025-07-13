@@ -1,508 +1,993 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Web Ledgers 0.1.1</title>
+    <meta
+      name="description"
+      content="A specification for mapping URIs to balances on the web, enabling distributed ledger systems across platforms and protocols."
+    />
+    <meta
+      name="keywords"
+      content="web ledgers, distributed ledger, URI, balance, payments, cryptocurrency, nostr, decentralized"
+    />
+    <script
+      src="https://www.w3.org/Tools/respec/respec-w3c-common"
+      class="remove"
+    ></script>
+    <script class="remove">
+      var respecConfig = {
+        specStatus: 'CG-DRAFT',
+        publishDate: '2024-01-15',
+        editors: [
+          {
+            name: 'Melvin Carvalho',
+            url: 'https://melvincarvalho.com/#me',
+            mailto: 'melvincarvalho@gmail.com',
+            company: 'Independent',
+            companyURL: 'https://melvincarvalho.com/#me'
+          }
+        ],
+        authors: [
+          {
+            name: 'Melvin Carvalho',
+            url: 'https://melvincarvalho.com/#me',
+            mailto: 'melvincarvalho@gmail.com',
+            company: 'Independent',
+            companyURL: 'https://melvincarvalho.com/#me'
+          }
+        ],
+        wg: 'W3C Web Payments Community Group',
+        wgURI: 'https://www.w3.org/community/webpayments/',
+        wgPublicList: 'public-webpayments',
+        processVersion: 2023,
+        edDraftURI: 'https://solidpayorg.github.io/webledgers/',
+        latestVersion: 'https://solidpayorg.github.io/webledgers/',
+        thisVersion: 'https://solidpayorg.github.io/webledgers/',
+        shortName: 'webledgers',
+        issueBase: 'https://github.com/solidpayorg/webledgers/issues/',
+        github: 'https://github.com/solidpayorg/webledgers/',
+        license: 'w3c-software-doc',
+        localBiblio: {
+          TURTLE: {
+            title: 'RDF 1.1 Turtle',
+            href: 'https://www.w3.org/TR/turtle/',
+            authors: ["Eric Prud'hommeaux", 'Gavin Carothers'],
+            status: 'REC',
+            publisher: 'W3C'
+          },
+          'LINKED-DATA': {
+            title: 'Linked Data - Design Issues',
+            href: 'https://www.w3.org/DesignIssues/LinkedData.html',
+            authors: ['Tim Berners-Lee'],
+            publisher: 'W3C'
+          }
+        }
+      }
+    </script>
 
-<head>
-  <meta charset='utf-8'>
-  <title>Web Ledgers v0.1</title>
-  <meta http-equiv="refresh" content="3600" >  
-  <script src='https://www.w3.org/Tools/respec/respec-w3c-common' class='remove'></script>
-  <script class='remove'>
-    var respecConfig = {
-      specStatus: "CG-DRAFT",
-      editors: [{
-        name: "Melvin Carvalho",
-        url: "https://melvincarvalho.com/#me",
-        mailto: "melvincarvalho@gmail.com"
-      }],
-      authors: [{
-        name: "Melvin Carvalho",
-        url: "https://melvincarvalho.com/#me",
-        mailto: "melvincarvalho@gmail.com"
-      }],
-      wg: 'W3C Payments Community Group',
-      wgURI: 'https://www.w3.org/community/webpayments/',
-      wgPublicList: "public-webpayments",
-      processVersion: 2019,
-      edDraftURI: "https://github.com/solidpayorg/webledgers/",
-      shortName: "webledgers",
-      issueBase: "https://github.com/solidpayorg/webledgers/"
-    };
-  </script>
+    <style>
+      .turtle .hll {
+        background-color: #ffffcc;
+      }
 
-  <style>
-    .turtle .hll {
-      background-color: #ffffcc
-    }
+      pre .highlight {
+        font-weight: bold;
+        color: green;
+      }
 
-    pre .highlight {
-      font-weight: bold;
-      color: green;
-    }
+      pre .comment {
+        color: SteelBlue;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+    </style>
+  </head>
 
-    pre .comment {
-      color: SteelBlue;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-  </style>
-
-</head>
-
-<body>
-  <section id='abstract'>
-    <p>
-      <i><b>A mapping of URIs to balances for the web</b></i>
-    </p>
-
-    <p>
-      <img src="https://www.w3.org/DesignIssues/diagrams/social/simondseconoart-small.png" />
-    </p>
-
-
-    <p>
-      Alice sends some credits to Bob on facebook. Bob sends to Carol's email. Carol sends Dan's mobile. Dan sends to
-      Erin on Telegram. And so on.
-    </p>
-
-    <p>
-      The web has evolved as a number of large silos operating socially with users inside each silo. This is analagous
-      to a phone system within a specific country. In order to call someone in another country, you need to use a
-      country code which people agree on. In the same way on the web URIs can operate as global codes, that act as a way
-      to connect different silos together.
-    </p>
-
-    <p>
-      Web Ledgers are a way to map URIs to balances, <i>within a given context</i>, on the web leading to a global
-      distributed ledgers comprising of billions of people. The context can be a platform, protocol, mesh network or
-      anything conceivable. By using URIs you create super keys
-      that allow the ledger to transcend any given local ecosystem, allowing interoperable economies to take shape.
-    </p>
-
-    <p>
-      This document specifies a format, interoperability guide lines, and operations that Web ledgers may support.
-    </p>
-
-    </p>
-  </section>
-
-  <section id='sotd'>
-    <p>
-      This document in an informal draft discussed in the <a href="https://www.w3.org/community/webpayments/">w3c web
-        payments
-        community group</a>.
-    </p>
-  </section>
-  <section>
-    <h2>Introduction</h2>
-
-    <p>A ledger in its simplest sense consists of two columns. The first column is an agent, the second column is a
-      balance.
-    </p>
-    <p>
-      This document specifies a format, and operations that Web Ledgers may support.
-    </p>
-
-    <p class="issue">
-      This entire document is a work in progress.
-    </p>
-
-    <section class="informative">
-      <h2>
-        Design Goals
-      </h2>
-
+  <body>
+    <section id="abstract">
       <p>
-        Web Ledgers are a component of larger systems, such as
-        the Linked Data ecosystem [[LINKED-DATA]], which have driven
-        the design goals for this specification. This section summarizes the
-        primary design goals for this specification.
+        Web Ledgers provide a standardized method for mapping Uniform Resource
+        Identifiers (URIs) to numerical balances on the web, enabling
+        distributed ledger systems that transcend platform boundaries. This
+        specification defines data models, serialization formats, and
+        interoperability guidelines for creating decentralized economic systems
+        using web-native identifiers.
       </p>
 
-      <table class="simple">
-        <thead>
-          <tr>
-            <th>
-              Goal
-            </th>
-            <th>
-              Description
-            </th>
-          </tr>
-        </thead>
+      <p>
+        By utilizing URIs as universal identifiers, Web Ledgers enable seamless
+        value transfer between heterogeneous systems including social platforms,
+        blockchain networks, communication protocols, and decentralized identity
+        systems. The specification supports multiple serialization formats
+        (JSON, CSV, RDF) and provides extensible entry types for different use
+        cases.
+      </p>
 
-        <tbody>
-          <tr>
-            <td>
-              Simplicity
-            </td>
-            <td>
-              The ledger is designed to be as simple as possible.  As such you just need two data points.  The user and the balance.
-            </td>
-          </tr>
-
-
-          <tr>
-            <td>
-              Decentralization
-            </td>
-            <td>
-              The ledger should not be server specific, though it may be.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Security
-            </td>
-            <td>
-              Transmission of a ledger changes tend to be over encrypted channels.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Discoverability
-            </td>
-            <td>
-              It may be possible to discover more information about a URI by standard mechanisms of dereferencing,
-              including, but not limited to HTTP.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Interoperability
-            </td>
-            <td>
-              URIs are used to provide wide interoperability with existing systems on the web.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Portability
-            </td>
-            <td>
-              Be system and network-independent and
-              enable entities to use their digital identifiers with any
-              system that supports Web Ledgers.
-            </td>
-          </tr>
-
-          <tr>
-            <td>
-              Extensibility
-            </td>
-            <td>
-              When possible, enable extensibility
-              provided it does not greatly hinder interoperability,
-              portability, or simplicity.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <p>
+        This document defines the core data model, JSON Schema validation rules,
+        and provides comprehensive examples demonstrating interoperability
+        across platforms including Nostr, WebID, traditional web services, and
+        cryptocurrency systems.
+      </p>
     </section>
 
+    <section id="sotd">
+      <p>
+        This document is an informal draft being discussed in the
+        <a href="https://www.w3.org/community/webpayments/"
+          >W3C Web Payments Community Group</a
+        >. It is not a W3C Standard nor is it on the W3C Standards Track.
+      </p>
+      <p>
+        This is a living document that may be updated, replaced, or obsoleted by
+        other documents at any time. It is inappropriate to cite this document
+        as other than work in progress.
+      </p>
+      <p>
+        Comments and feedback on this specification are welcome and should be
+        directed to the
+        <a href="https://github.com/solidpayorg/webledgers/issues/"
+          >GitHub issues</a
+        >
+        for this specification.
+      </p>
+    </section>
+    <section>
+      <h2>Introduction</h2>
 
-  </section>
+      <p>
+        The modern web consists of numerous independent platforms and services,
+        each maintaining their own user accounts and value systems. Traditional
+        ledgers, in their simplest form, consist of two columns: an identifier
+        for an agent and their corresponding balance. Web Ledgers extend this
+        concept to the web scale by utilizing [[RFC3986]] Uniform Resource
+        Identifiers (URIs) as universal identifiers that transcend platform
+        boundaries.
+      </p>
 
-  <section id="design" class="informative">
-    <h3>Terminology</h3>
+      <p>
+        This specification defines a standardized approach for representing and
+        exchanging balance information across heterogeneous systems including
+        social networks, blockchain platforms, communication protocols, and
+        decentralized identity systems. By leveraging web standards and
+        providing multiple serialization formats, Web Ledgers enable
+        interoperability between previously incompatible systems.
+      </p>
 
-    <h3>Terminology</h3>
+      <p>The Web Ledgers specification provides:</p>
 
+      <ul>
+        <li>A core data model for representing URI-to-balance mappings</li>
+        <li>Multiple serialization formats (JSON, CSV, RDF, JSON-LD)</li>
+        <li>Flexible entry format supporting various use cases</li>
+        <li>JSON Schema validation rules</li>
+        <li>Interoperability guidelines for cross-platform integration</li>
+      </ul>
 
+      <section class="informative">
+        <h3>Conformance</h3>
+        <p>
+          As well as sections marked as non-normative, all authoring guidelines,
+          diagrams, examples, and notes in this specification are non-normative.
+          Everything else in this specification is normative.
+        </p>
+        <p>
+          The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+          "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+          document are to be interpreted as described in [[RFC2119]].
+        </p>
+      </section>
 
-    <dl class="termlist">
-      <dt><dfn lt="agent|agent">Agent</dfn></dt>
-      <dd>
-        An Agent is a URI that denotes a person, machine or account on the web.
-      </dd>
-      <dt><dfn lt="balance|balance">balance</dfn></dt>
-      <dd>
-        Each URI maps to a balance in the Web Ledger. A balance is a numerical value with an explicit or implicit
-        unit of currency. If not unit is stated the unit MAY be taken from the popular electronic coin, bitcoin, and
-        is
-        equal to 1 satoshi.
-      </dd>
-      <dt><dfn lt="currency|currency">currency</dfn></dt>
-      <dd>
-        A currency is denomination of a given balance
-      </dd>
-      <dt><dfn lt="decentralized system|decentralized systems">decentralized system</dfn></dt>
-      <dd>
-        A system in which lower level components operate on local information to
-        accomplish global goals. For example, an ant colony is a decentralized system
-        as there is no central control determining when food must be collected or
-        how new tunnels should be excavated.
-      </dd>
-    </dl>
+      <section class="informative">
+        <h2>Design Goals</h2>
 
+        <p>
+          Web Ledgers are a component of larger systems, such as the Linked Data
+          ecosystem [[LINKED-DATA]], which have driven the design goals for this
+          specification. This section summarizes the primary design goals for
+          this specification.
+        </p>
 
+        <table class="simple">
+          <thead>
+            <tr>
+              <th>Goal</th>
+              <th>Description</th>
+            </tr>
+          </thead>
 
-  </section>
+          <tbody>
+            <tr>
+              <td>Simplicity</td>
+              <td>
+                The ledger is designed to be as simple as possible. As such you
+                just need two data points. The user and the balance.
+              </td>
+            </tr>
 
-  <section id="Data Model" class="Data Model">
-    <h2>Data Model</h2>
+            <tr>
+              <td>Decentralization</td>
+              <td>
+                The ledger should not be server specific, though it may be.
+              </td>
+            </tr>
 
-    The Web Ledgers data model is designed to have varying layers of complexity depending on the use case. Each
-    serialization is has different trade-offs.
+            <tr>
+              <td>Security</td>
+              <td>
+                Transmission of a ledger changes tend to be over encrypted
+                channels.
+              </td>
+            </tr>
 
-    <h3>CSV</h3>
+            <tr>
+              <td>Discoverability</td>
+              <td>
+                It may be possible to discover more information about a URI by
+                standard mechanisms of dereferencing, including, but not limited
+                to HTTP.
+              </td>
+            </tr>
 
-    <p>
-      CSV is probably the most simple format possible for a web ledger. It is simply a 2 column file (or database), the
-      first column MUST be a URI, and the 2nd column is a balance. It is by definition the simplest ledger one can keep.
-      The currency in this scenario is not explicity stated, but assumed across the system. The default is to assume
-      that balances are in satoshis, if no other information is found.
-    </p>
+            <tr>
+              <td>Interoperability</td>
+              <td>
+                URIs are used to provide wide interoperability with existing
+                systems on the web.
+              </td>
+            </tr>
 
-    <pre <pre class="example highlight" title="Example of CSV based web ledger">
+            <tr>
+              <td>Portability</td>
+              <td>
+                Be system and network-independent and enable entities to use
+                their digital identifiers with any system that supports Web
+                Ledgers.
+              </td>
+            </tr>
+
+            <tr>
+              <td>Extensibility</td>
+              <td>
+                When possible, enable extensibility provided it does not greatly
+                hinder interoperability, portability, or simplicity.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+
+    <section id="design" class="informative">
+      <h3>Terminology</h3>
+
+      <h3>Terminology</h3>
+
+      <dl class="termlist">
+        <dt><dfn lt="web ledger|web ledgers">Web Ledger</dfn></dt>
+        <dd>
+          A structured data format that maps URIs to numerical balance values,
+          optionally including a human-readable name and description. A Web
+          Ledger enables interoperability between different systems by using
+          web-native identifiers.
+        </dd>
+
+        <dt><dfn lt="agent|agent">Agent</dfn></dt>
+        <dd>
+          An Agent is a URI that denotes a person, machine or account on the
+          web.
+        </dd>
+
+        <dt><dfn lt="balance|balance">balance</dfn></dt>
+        <dd>
+          Each URI maps to a balance in the Web Ledger. A balance is a numerical
+          value with an explicit or implicit unit of currency. If not unit is
+          stated the unit MAY be taken from the popular electronic coin,
+          bitcoin, and is equal to 1 satoshi.
+        </dd>
+
+        <dt><dfn lt="currency|currency">currency</dfn></dt>
+        <dd>A currency is denomination of a given balance</dd>
+
+        <dt><dfn lt="ledger name|ledger names">Ledger Name</dfn></dt>
+        <dd>
+          A human-readable string that identifies a Web Ledger. The name
+          provides a friendly identifier that helps users and systems
+          distinguish between different ledgers.
+        </dd>
+
+        <dt>
+          <dfn lt="decentralized system|decentralized systems"
+            >decentralized system</dfn
+          >
+        </dt>
+        <dd>
+          A system in which lower level components operate on local information
+          to accomplish global goals. For example, an ant colony is a
+          decentralized system as there is no central control determining when
+          food must be collected or how new tunnels should be excavated.
+        </dd>
+      </dl>
+    </section>
+
+    <section id="Data Model" class="Data Model">
+      <h2>Data Model</h2>
+
+      The Web Ledgers data model is designed to have varying layers of
+      complexity depending on the use case. Each serialization is has different
+      trade-offs.
+
+      <h3>CSV</h3>
+
+      <p>
+        CSV is probably the most simple format possible for a web ledger. It is
+        simply a 2 column file (or database), the first column MUST be a URI,
+        and the 2nd column is a balance. It is by definition the simplest ledger
+        one can keep. The currency in this scenario is not explicity stated, but
+        assumed across the system. The default is to assume that balances are in
+        satoshis, if no other information is found.
+      </p>
+
+      <pre class="example highlight" title="Example of CSV based web ledger">
     https://www.w3.org/People/Berners-Lee/card#i 100
-    </pre>
+    </pre
+      >
 
-    <h3>JSON-LD</h3>
-    
-    <p>
-      JSON-LD format for a ledger consists of a URI and a balance.
-    </p>
-    <pre class="example highlight" title="Exammple of JSON based web ledger">
-            { "@id": "https://www.w3.org/People/Berners-Lee/card#i",
-              "https://w3id.org/ledger#balance": [{ "@value": 100 }] }
-        </pre>
+      <h3>JSON / JSON-LD</h3>
 
+      <p>
+        A structured JSON format for a ledger consists of an entries array with
+        metadata and typed entries. The ledger can include a human-readable name
+        and description to provide context about its purpose and contents.
+      </p>
+      <pre
+        class="example highlight"
+        title="Example of structured JSON-based web ledger"
+      >
+ {
+   "context": "https://w3id.org/ledger/v1",
+   "type": "WebLedger",
+   "id": "https://example.com/ledger/1",
+   "name": "WebLedgers Example",
+   "description": "A ledger tracking balances across multiple platforms",
+   "created": 1705316200,
+   "updated": 1705316200,
+   "currency": "satoshi",
+   "entries": [
+     {
+       "type": "Entry",
+       "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
+       "amount": "132500",
+       "timestamp": 1705316200
+     },
+     {
+       "type": "Entry", 
+       "url": "https://www.w3.org/People/Berners-Lee/card#i",
+       "amount": "100000",
+       "timestamp": 1705315900
+     }
+   ],
+   "total": "232500",
+   "count": 2
+ }
+    </pre
+      >
 
-    <h3>JSON</h3>
-
-    <p>
-      A simple JSON format for a ledger consists of a URI and a balance.
-    </p>
-    <pre class="example highlight" title="Exammple of JSON based web ledger">
-        { "https://www.w3.org/People/Berners-Lee/card#i" : 100 }
-    </pre>
-
-    <h3>RDF</h3>
-
-    <p>
-      RDF is a framework for interoperability on the web. The serialization in this example it Turtle.
-    </p>
-    <pre class="example highlight" title="Example of Turtle based web ledger">
-        &lt;https://www.w3.org/People/Berners-Lee/card#i> :balance 100 .
-    </pre>
-
-    <p>TODO : explain :balance</p>
-
-
-  </section>
-
-
-
-  <section id="implementations" class="informative">
-    <h3>Implementations</h3>
-
-
-  </section>
-
-  <section id="examples" class="appendix informative">
-    <h2>Examples</h2>
-    <h3>WebID</h3>
-
-    <p>
-      A WebID in CSV Format.
-    </p>
-
-    <code>
-        https://www.w3.org/People/Berners-Lee/card#i 100
-    </code>
-
-    <h3>Github</h3>
-
-    <p>
-      The popular git service.
-    </p>
-
-    <code>
-        https://github.com/solid-pay#this 100
-    </code>
-
-    <p>
-      seeAlso :
-      <a href="https://api.github.com/users/solid-pay">https://api.github.com/users/solid-pay</a>
-
-      add urn:json: to change this to linked data
-
-    </p>
-
-    <code>
-      "@context": {
-        "@base": "urn:json:"
+      <h4>JSON Schema</h4>
+      <p>A formal JSON Schema for validation:</p>
+      <pre class="example highlight" title="JSON Schema for Web Ledger">
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "context": {
+      "type": "string",
+      "format": "uri",
+      "default": "https://w3id.org/ledger/v1"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["WebLedger"]
+    },
+    "id": {
+      "type": "string",
+      "format": "uri"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name for the ledger"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the ledger's purpose"
+    },
+    "created": {
+      "type": "integer",
+      "description": "Unix timestamp of ledger creation"
+    },
+    "updated": {
+      "type": "integer",
+      "description": "Unix timestamp of last ledger update"
+    },
+    "currency": {
+      "type": "string",
+      "default": "satoshi"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Entry"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "timestamp": {
+            "type": "integer",
+            "description": "Unix timestamp of entry creation"
+          }
+        },
+        "required": ["type", "url", "amount"]
       }
-    </code>
+    },
+    "total": {
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": ["type", "entries"]
+}
+    </pre
+      >
 
-    <h3>Instagram</h3>
+      <h4>Entry Variations</h4>
+      <p>
+        All entries use the same "Entry" type but can have different properties
+        depending on their purpose:
+      </p>
+      <pre class="example highlight" title="Different entry variations">
+ {
+   "context": "https://w3id.org/ledger/v1",
+   "type": "WebLedger",
+   "id": "https://gaming.example.com/ledger/tournament",
+   "name": "Gaming Tournament Rewards",
+   "description": "Prize distribution ledger for esports tournament participants",
+   "currency": "satoshi",
+   "entries": [
+     {
+       "type": "Entry",
+       "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
+       "amount": "132500",
+       "currency": "satoshi",
+       "timestamp": 1705316200
+     },
+     {
+       "type": "Entry",
+       "url": "https://www.w3.org/People/Berners-Lee/card#i",
+       "amount": "50000",
+       "currency": "satoshi",
+       "txid": "tx_789xyz",
+       "timestamp": 1705315900
+     },
+     {
+       "type": "Entry",
+       "url": "urn:voucher:1234567890abcdef",
+       "amount": "25000",
+       "expires": 1735689599,
+       "timestamp": 1705315600
+     }
+   ]
+ }
+    </pre
+      >
 
-    <p>
-      Ihe picture sharing site.
-    </p>
+      <h3>RDF</h3>
 
-    <h3>Stack Overflow</h3>
+      <p>
+        RDF is a framework for interoperability on the web. The serialization in
+        this example is Turtle [[TURTLE]]. Web Ledgers define a vocabulary for
+        expressing balance information in RDF.
+      </p>
 
-    <p>
-      The popular question and answer web site.
-    </p>
+      <section>
+        <h4>RDF Vocabulary</h4>
+        <p>
+          The Web Ledgers RDF vocabulary is identified by the namespace
+          <code>https://w3id.org/ledger#</code> (prefix <code>ledger:</code>).
+        </p>
 
-    <code>
-      https://stackoverflow.com/users/12345/user#this 100
-    </code>
+        <dl>
+          <dt><code>ledger:WebLedger</code></dt>
+          <dd>A class representing a Web Ledger containing balance entries.</dd>
 
-    <h3>Twitter</h3>
+          <dt><code>ledger:name</code></dt>
+          <dd>
+            A property that provides a human-readable name for a Web Ledger. The
+            object MUST be a literal string.
+          </dd>
 
-    <p>
-      The popular microblogging service.
-    </p>
+          <dt><code>ledger:description</code></dt>
+          <dd>
+            A property that provides a human-readable description of a Web
+            Ledger's purpose. The object MUST be a literal string.
+          </dd>
 
-    <code>
-        https://twitter.com/user#this 100
-    </code>
+          <dt><code>ledger:balance</code></dt>
+          <dd>
+            A property that relates a URI to its numerical balance value. The
+            object MUST be a literal with datatype <code>xsd:decimal</code> or
+            <code>xsd:integer</code>.
+          </dd>
 
-    <h3>Reddit</h3>
+          <dt><code>ledger:currency</code></dt>
+          <dd>
+            A property that specifies the currency denomination for a balance.
+            The object MUST be a literal string.
+          </dd>
 
-    <p>
-      The popular news service.
-    </p>
+          <dt><code>ledger:timestamp</code></dt>
+          <dd>
+            A property that specifies when a balance entry was created or last
+            modified. The object MUST be a literal with datatype
+            <code>xsd:integer</code> representing a Unix timestamp.
+          </dd>
+        </dl>
+      </section>
 
-    <code>
-      https://www.reddit.com/user/user#this 100
-    </code>
+      <pre class="example highlight" title="Example of Turtle based web ledger">
+ @prefix ledger: &lt;https://w3id.org/ledger#> .
+ @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#> .
+ 
+ &lt;https://example.com/ledger/1> a ledger:WebLedger ;
+   ledger:name "Global Social Credits Ledger" ;
+   ledger:description "A ledger tracking social credits across multiple platforms" ;
+   ledger:currency "satoshi" ;
+   ledger:timestamp "1705316200"^^xsd:integer .
+ 
+ &lt;https://www.w3.org/People/Berners-Lee/card#i> 
+   ledger:balance "100000"^^xsd:integer ;
+   ledger:currency "satoshi" ;
+   ledger:timestamp "1705315900"^^xsd:integer .
+ 
+ &lt;did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645> 
+   ledger:balance "132500"^^xsd:integer ;
+   ledger:currency "satoshi" ;
+   ledger:timestamp "1705316200"^^xsd:integer .
+              </pre
+      >
 
-    <h3>Mixcloud</h3>
+      <h3>Named Ledger Use Cases</h3>
+      <p>
+        Web Ledgers can use descriptive names to clarify their purpose and
+        context:
+      </p>
 
-    <p>
-      The popular social music service.
-    </p>
+      <h4>Community Reputation System</h4>
+      <pre class="example highlight" title="Community reputation ledger">
+{
+  "context": "https://w3id.org/ledger/v1",
+  "type": "WebLedger",
+  "id": "https://community.example.com/reputation",
+  "name": "Developer Community Reputation",
+  "description": "Reputation scores for open source contributors based on code contributions and peer reviews",
+  "currency": "reputation-points",
+  "entries": [
+    {
+      "type": "Entry",
+      "url": "https://github.com/alice-dev#this",
+      "amount": "2750",
+      "timestamp": 1705316200
+    }
+  ]
+}
+       </pre
+      >
 
-    <code>
-      https://www.mixcloud.com/mmhradio#this 100
-    </code>
+      <h4>Carbon Credit Tracking</h4>
+      <pre class="example highlight" title="Carbon credit ledger">
+{
+  "context": "https://w3id.org/ledger/v1",
+  "type": "WebLedger",
+  "id": "https://climate.example.org/carbon-credits",
+  "name": "Verified Carbon Credits Registry",
+  "description": "Tradeable carbon credits from verified environmental projects",
+  "currency": "tCO2e",
+  "entries": [
+    {
+      "type": "Entry",
+      "url": "https://greentech.example.com/project-2024#this",
+      "amount": "1500",
+      "timestamp": 1705316200
+    }
+  ]
+}
+       </pre
+      >
 
-    <h3>Twitch</h3>
+      <h4>Educational Achievement Tracking</h4>
+      <pre class="example highlight" title="Educational achievement ledger">
+{
+  "context": "https://w3id.org/ledger/v1",
+  "type": "WebLedger",
+  "id": "https://university.example.edu/course-credits",
+  "name": "Computer Science Course Credits",
+  "description": "Academic credit tracking for CS degree program students",
+  "currency": "credit-hours",
+  "entries": [
+    {
+      "type": "Entry",
+      "url": "mailto:student@university.example.edu",
+      "amount": "120",
+      "timestamp": 1705316200
+    }
+  ]
+}
+       </pre
+      >
+    </section>
 
-    <p>
-      The popular streaming service.
-    </p>
+    <section id="security-considerations">
+      <h2>Security Considerations</h2>
 
-    <code>
-      https://www.twitch.tv/exbc#this 100
-    </code>
+      <p>
+        Web Ledgers implementations SHOULD consider the following security
+        aspects:
+      </p>
 
-    <h3>Youtube</h3>
+      <section>
+        <h3>Authentication and Authorization</h3>
+        <p>
+          Implementations SHOULD provide mechanisms to authenticate ledger
+          updates and authorize balance modifications. Without proper
+          authentication, malicious actors could manipulate balances or create
+          fraudulent entries.
+        </p>
+        <p>Recommended approaches include:</p>
+        <ul>
+          <li>Digital signatures using cryptographic key pairs</li>
+          <li>OAuth 2.0 or similar authentication protocols</li>
+          <li>Multi-signature schemes for high-value transactions</li>
+        </ul>
+      </section>
 
-    <p>
-      The popular video service.
-    </p>
+      <section>
+        <h3>Data Integrity</h3>
+        <p>
+          Implementations SHOULD implement mechanisms to ensure data integrity
+          and prevent tampering. This includes:
+        </p>
+        <ul>
+          <li>Cryptographic hashing of ledger entries</li>
+          <li>Merkle tree structures for efficient verification</li>
+          <li>Timestamp validation to prevent replay attacks</li>
+        </ul>
+      </section>
 
-    <code>
-      https://www.youtube.com/channel/1234wxyz#this 100
-    </code>
+      <section>
+        <h3>Transport Security</h3>
+        <p>
+          All ledger data transmission MUST occur over secure channels
+          (HTTPS/TLS) to prevent man-in-the-middle attacks and ensure
+          confidentiality.
+        </p>
+      </section>
+    </section>
 
+    <section id="privacy-considerations">
+      <h2>Privacy Considerations</h2>
 
+      <p>
+        Web Ledgers may contain sensitive financial information. Implementations
+        SHOULD consider the following privacy aspects:
+      </p>
 
+      <section>
+        <h3>Data Minimization</h3>
+        <p>
+          Implementations SHOULD only store and transmit the minimum amount of
+          information necessary for ledger functionality. Sensitive metadata
+          should be avoided unless essential.
+        </p>
+      </section>
 
-    <h3>Voucher</h3>
+      <section>
+        <h3>URI Privacy</h3>
+        <p>
+          URIs used as identifiers may reveal personal information.
+          Implementations SHOULD:
+        </p>
+        <ul>
+          <li>Support pseudonymous identifiers where possible</li>
+          <li>Provide mechanisms for identifier rotation</li>
+          <li>Clearly document any privacy implications of URI schemes</li>
+        </ul>
+      </section>
 
-    <p>
-      A a voucher may be implemented using the webvoucher spec.
-    </p>
+      <section>
+        <h3>Access Control</h3>
+        <p>
+          Implementations MUST provide appropriate access controls to prevent
+          unauthorized access to balance information. This includes:
+        </p>
+        <ul>
+          <li>Role-based access control (RBAC)</li>
+          <li>Fine-grained permissions for different operations</li>
+          <li>Audit logging for compliance and monitoring</li>
+        </ul>
+      </section>
+    </section>
 
-    <code>
-        urn:voucher:1234567890abcdef 100
-    </code>
+    <section id="implementations" class="informative">
+      <h2>Implementations</h2>
 
-    <h3>Email</h3>
+      <p>
+        This section is informative and provides guidance for implementers of
+        Web Ledgers systems.
+      </p>
 
-    <p>
-      An email in CSV Format.
-    </p>
+      <section>
+        <h3>Reference Implementation</h3>
+        <p>
+          A reference implementation is available at
+          <a href="https://github.com/solidpayorg/webledgers-reference"
+            >https://github.com/solidpayorg/webledgers-reference</a
+          >.
+        </p>
+      </section>
 
-    <code>
-        mailto:timbl@w3.org 100
-    </code>
+      <section>
+        <h3>Known Implementations</h3>
+        <p>The following implementations are known to support Web Ledgers:</p>
+        <ul>
+          <li>
+            SolidPay Ledger Service - Production implementation supporting
+            multiple URI schemes
+          </li>
+          <li>
+            Nostr Ledger Extension - Experimental implementation for Nostr
+            protocol
+          </li>
+        </ul>
+      </section>
+    </section>
 
-    <h3>Mobile</h3>
+    <section id="examples" class="appendix informative">
+      <h2>Examples</h2>
 
-    <p>
-      An mobile phone.
-    </p>
+      <h3>Decentralized Identifiers</h3>
 
-    <code>
-        tel:+15550909090
-    </code>
+      <h4>Nostr DID</h4>
+      <p>
+        Nostr public keys represented as DIDs for decentralized social
+        networking.
+      </p>
+      <pre class="example highlight" title="Nostr DID ledger entry">
+{
+  "type": "Entry",
+  "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
+  "amount": "132500",
+  "timestamp": 1705316200
+}
+    </pre
+      >
 
-    <h3>Crypto Currencies</h3>
+      <h4>WebID</h4>
+      <p>A WebID representing a person's web identity.</p>
+      <pre class="example highlight" title="WebID ledger entry">
+{
+  "type": "Entry",
+  "url": "https://www.w3.org/People/Berners-Lee/card#i",
+  "amount": "100000",
+  "timestamp": 1705315900
+}
+    </pre
+      >
 
-    <p>
-      Crypto currency.
-    </p>
+      <h3>Social Platforms</h3>
 
-    <code>
-        bitcoin:1kr...
-    </code>
+      <h4>GitHub</h4>
+      <p>The popular git service platform.</p>
+      <pre class="example highlight" title="GitHub ledger entry">
+{
+  "type": "Entry",
+  "url": "https://github.com/solid-pay#this",
+  "amount": "75000",
+  "timestamp": 1705311300
+}
+    </pre
+      >
 
-    <h3>Nostr</h3>
+      <h4>Twitter/X</h4>
+      <p>The microblogging service.</p>
+      <pre class="example highlight" title="Twitter ledger entry">
+{
+  "type": "Entry",
+  "url": "https://x.com/user#this",
+  "amount": "50000",
+  "timestamp": 1705309500
+}
+    </pre
+      >
 
-    <p>
-      Notes and other stuff over relays.
-    </p>
+      <h4>YouTube</h4>
+      <p>The video sharing platform.</p>
+      <pre class="example highlight" title="YouTube ledger entry">
+{
+  "type": "Entry",
+  "url": "https://www.youtube.com/channel/UCabcdef1234567890#this",
+  "amount": "25000",
+  "timestamp": 1705305000
+}
+    </pre
+      >
 
-    <code>
-      nostr:pubkey:pubkeyhash 100
-    </code>
+      <h3>Communication Protocols</h3>
 
-    <h3>Transaction Outputs</h3>
+      <h4>Email</h4>
+      <p>Traditional email addresses as identifiers.</p>
+      <pre class="example highlight" title="Email ledger entry">
+{
+  "type": "Entry",
+  "url": "mailto:timbl@w3.org",
+  "amount": "15000",
+  "timestamp": 1705301200
+}
+    </pre
+      >
 
-    <p>
-      Transaction outputs used by bitcoin and forks.
-    </p>
+      <h4>Mobile Phone</h4>
+      <p>Phone numbers as global identifiers.</p>
+      <pre class="example highlight" title="Mobile ledger entry">
+{
+  "type": "Entry",
+  "url": "tel:+15550909090",
+  "amount": "10000",
+  "timestamp": 1705297800
+}
+    </pre
+      >
 
-    <code>
-      txo:chain:txid:output 100
-    </code>
+      <h3>Cryptocurrency & Blockchain</h3>
 
+      <h4>Bitcoin Address</h4>
+      <p>Bitcoin addresses as payment identifiers.</p>
+      <pre class="example highlight" title="Bitcoin ledger entry">
+{
+  "type": "Entry",
+  "url": "bitcoin:1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g",
+  "amount": "2100000",
+  "timestamp": 1705294800
+}
+    </pre
+      >
 
+      <h4>Transaction Outputs</h4>
+      <p>Bitcoin transaction outputs (UTXOs) as specific balance holders.</p>
+      <pre class="example highlight" title="Transaction output ledger entry">
+{
+  "type": "Entry",
+  "url": "txo:btc:f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16:0",
+  "amount": "5000000000",
+  "timestamp": 1705293900
+}
+    </pre
+      >
 
+      <h3>Vouchers & Tokens</h3>
 
+      <h4>Web Voucher</h4>
+      <p>Digital vouchers following the webvoucher specification.</p>
+      <pre class="example highlight" title="Voucher ledger entry">
+{
+  "type": "Entry",
+  "url": "urn:voucher:1234567890abcdef",
+  "amount": "25000",
+  "expires": 1735689599,
+  "timestamp": 1705289400
+}
+    </pre
+      >
 
-    <h3>TBD</h3>
+      <h3>Complete Ledger Example</h3>
+      <p>
+        A complete ledger with multiple entry variations demonstrating the full
+        data model with descriptive naming for clarity.
+      </p>
+      <pre class="example highlight" title="Complete multi-platform ledger">
+ {
+   "context": "https://w3id.org/ledger/v1",
+   "type": "WebLedger",
+   "id": "https://example.com/ledger/global",
+   "name": "Universal Web Credits",
+   "description": "Cross-platform ledger demonstrating interoperability between social networks, blockchain systems, and communication protocols",
+   "created": 1705276800,
+   "updated": 1705316200,
+   "currency": "satoshi",
+  "entries": [
+    {
+      "type": "Entry",
+      "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
+      "amount": "132500",
+      "timestamp": 1705316200
+    },
+    {
+      "type": "Entry",
+      "url": "https://www.w3.org/People/Berners-Lee/card#i",
+      "amount": "100000",
+      "timestamp": 1705315900
+    },
+    {
+      "type": "Entry",
+      "url": "https://github.com/solid-pay#this",
+      "amount": "75000",
+      "timestamp": 1705311300
+    },
+    {
+      "type": "Entry",
+      "url": "mailto:timbl@w3.org",
+      "amount": "15000",
+      "timestamp": 1705301200
+    },
+    {
+      "type": "Entry",
+      "url": "urn:voucher:1234567890abcdef",
+      "amount": "25000",
+      "expires": 1735689599,
+      "timestamp": 1705289400
+    }
+  ],
+  "total": "347500",
+  "count": 5
+}
+    </pre
+      >
+    </section>
 
-    <p>
-      Telegram
-    </p>
+    <section id="acknowledgements" class="appendix informative">
+      <h2>Acknowledgements</h2>
 
-    <p>
-      IRC
-    </p>
+      <p>
+        The editor would like to thank the
+        <a href="https://www.w3.org/community/webpayments/"
+          >W3C Web Payments Community Group</a
+        >
+        for their support and feedback during the development of this
+        specification.
+      </p>
 
+      <p>
+        Special thanks to the following individuals and organizations for their
+        contributions, feedback, and implementation efforts:
+      </p>
 
+      <ul>
+        <li>The W3C Web Payments Community Group participants</li>
+        <li>The Nostr protocol development community</li>
+        <li>The Solid project community</li>
+        <li>Contributors to the SolidPay project</li>
+      </ul>
 
-  </section>
-
-  <section id="examples" class="appendix informative">
-    <h3>Acknowledgements</h3>
-  </section>
-
-
-  <p>
-    The editor would like to thank the Web Payments Community Group.
-  </p>
-
-  <p>
-    Thanks to the following individuals, in order of their first name, for their input on the specification:
-  </p>
-
-
-
-</body>
-
+      <p>
+        This specification builds upon the foundational work of the World Wide
+        Web Consortium, particularly the URI specification [[RFC3986]], the RDF
+        framework [[RDF11-CONCEPTS]], and the JSON-LD specification
+        [[JSON-LD11]].
+      </p>
+    </section>
+  </body>
 </html>
