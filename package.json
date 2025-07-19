@@ -1,23 +1,49 @@
 {
   "name": "webledgers",
-  "version": "0.0.3",
-  "description": "web ledgers",
+  "version": "0.1.2",
+  "description": "Web Ledgers - URI-to-balance mapping system for distributed ledgers",
   "main": "index.js",
+  "bin": {
+    "webledgers": "./cli.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "cli": "node cli.js",
+    "interactive": "node cli.js interactive"
+  },
+  "keywords": [
+    "ledger",
+    "blockchain",
+    "uri",
+    "balance",
+    "distributed",
+    "web",
+    "json-ld",
+    "cryptocurrency",
+    "payments"
+  ],
+  "author": "Melvin Carvalho",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^9.4.1",
+    "figlet": "^1.6.0",
+    "inquirer": "^8.2.5",
+    "ora": "^5.4.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/solidpayorg/webledgers.git"
+    "url": "https://github.com/solidpayorg/webledgers.git"
   },
-  "keywords": [
-    "web",
-    "ledgers"
-  ],
-  "author": "Melvin Carvalho <melvincarvalho@gmail.com> (https://melvincarvalho.com/#me)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/solidpayorg/webledgers/issues"
-  },
-  "homepage": "https://github.com/solidpayorg/webledgers#readme"
+  "homepage": "https://solidpayorg.github.io/webledgers/",
+  "files": [
+    "index.js",
+    "cli.js",
+    "README.md",
+    "LICENSE"
+  ]
 }
