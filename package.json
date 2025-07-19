@@ -1,6 +1,6 @@
 {
   "name": "webledgers",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Web Ledgers - URI-to-balance mapping system for distributed ledgers",
   "main": "index.js",
   "bin": {

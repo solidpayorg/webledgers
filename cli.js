@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Web Ledgers CLI 0.1.2
+ * Web Ledgers CLI
  * Interactive command-line interface for Web Ledgers
  */
 
@@ -13,6 +13,7 @@ const { Command } = require('commander');
 const ora = require('ora');
 const Table = require('cli-table3');
 const figlet = require('figlet');
+const { version } = require('./package.json');
 
 // Import our Web Ledgers library
 const {
@@ -33,14 +34,14 @@ const DEFAULT_LEDGER_PATH = '.well-known/webledgers/webledgers.json';
 program
   .name('webledgers')
   .description('Web Ledgers CLI - Manage URI-to-balance mappings')
-  .version('0.1.2');
+  .version(version);
 
 /**
  * Display the welcome banner
  */
 function displayBanner () {
   console.log(chalk.cyan(figlet.textSync('Web Ledgers', { horizontalLayout: 'fitted' })));
-  console.log(chalk.gray('URI-to-Balance Mapping System v0.1.2'));
+  console.log(chalk.gray(`URI-to-Balance Mapping System v${version}`));
   console.log(chalk.gray(`Default location: ${DEFAULT_LEDGER_PATH}\n`));
 }
 
@@ -360,6 +361,14 @@ function displayValidation (validation) {
       console.log(chalk.red(`  • ${error}`));
     });
   }
+
+  // Display warnings if any
+  if (validation.warnings && validation.warnings.length > 0) {
+    console.log(chalk.yellow('\n⚠️  Warnings:'));
+    validation.warnings.forEach(warning => {
+      console.log(chalk.yellow(`  • ${warning}`));
+    });
+  }
 }
 
 // CLI Commands
@@ -410,13 +419,13 @@ program
   });
 
 program
-  .command('show')
+  .command('show [file]')
   .description('Display ledger contents')
   .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
   .option('-c, --currency <currency>', 'currency to display totals for')
-  .action((options) => {
+  .action((file, options) => {
     displayBanner();
-    const filename = options.file || DEFAULT_LEDGER_PATH;
+    const filename = options.file || file || DEFAULT_LEDGER_PATH;
     const ledger = loadLedgerFromFile(filename);
     displayLedger(ledger, options.currency);
   });
@@ -433,65 +442,102 @@ program
   });
 
 program
-  .command('balance')
-  .description('Get balance for specific URI (interactive if URI not specified)')
+  .command('balance [file]')
+  .description('Display all balances in the ledger')
   .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
-  .option('-u, --uri <uri>', 'URI to query (interactive selection if not specified)')
-  .option('-c, --currency <currency>', 'currency (defaults to ledger default)')
-  .action(async (options) => {
-    const filename = options.file || DEFAULT_LEDGER_PATH;
+  .option('-c, --currency <currency>', 'filter by specific currency (shows all if not specified)')
+  .action((file, options) => {
+    const filename = options.file || file || DEFAULT_LEDGER_PATH;
     const ledger = loadLedgerFromFile(filename);
 
-    let uri = options.uri;
-    let currency = options.currency;
-
-    // If no URI specified, use interactive selection
-    if (!uri) {
-      if (ledger.entries.length === 0) {
-        console.log(chalk.yellow('No entries in this ledger to query.'));
-        return;
-      }
-
-      const uris = ledger.entries.map(entry => entry.url);
-
-      const answers = await inquirer.prompt([
-        {
-          type: 'list',
-          name: 'url',
-          message: chalk.yellow('Select URI to query:'),
-          choices: uris
-        },
-        {
-          type: 'input',
-          name: 'currency',
-          message: chalk.yellow(`Currency (default: ${ledger.defaultCurrency}):`),
-          default: ledger.defaultCurrency,
-          when: !currency
-        }
-      ]);
-
-      uri = answers.url;
-      currency = currency || answers.currency;
+    if (ledger.entries.length === 0) {
+      console.log(chalk.yellow('📭 No entries in this ledger'));
+      return;
     }
 
-    const balance = ledger.getBalance(uri, currency);
+    // Create balances table
+    const balancesTable = new Table({
+      head: [chalk.cyan('URI'), chalk.cyan('Amount'), chalk.cyan('Currency')],
+      colWidths: [50, 15, 15]
+    });
 
-    if (balance !== null) {
-      const displayCurrency = currency || ledger.defaultCurrency;
-      console.log(chalk.green(`💰 ${balance} ${displayCurrency}`));
-    } else {
-      console.log(chalk.red('❌ Balance not found'));
-      process.exit(1);
+    let hasResults = false;
+
+    ledger.entries.forEach(entry => {
+      if (typeof entry.amount === 'string') {
+        // Simple amount in default currency
+        if (!options.currency || options.currency === ledger.defaultCurrency) {
+          balancesTable.push([
+            entry.url,
+            chalk.green(entry.amount),
+            chalk.yellow(ledger.defaultCurrency)
+          ]);
+          hasResults = true;
+        }
+      } else if (Array.isArray(entry.amount)) {
+        // Multi-currency amounts
+        entry.amount.forEach((currencyEntry, index) => {
+          if (!options.currency || options.currency === currencyEntry.currency) {
+            balancesTable.push([
+              index === 0 ? entry.url : '', // Only show URI on first row
+              chalk.green(currencyEntry.value),
+              chalk.yellow(currencyEntry.currency)
+            ]);
+            hasResults = true;
+          }
+        });
+      }
+    });
+
+    if (!hasResults) {
+      console.log(chalk.yellow(`No balances found for currency: ${options.currency}`));
+      return;
+    }
+
+    console.log(chalk.cyan('\n💰 All Balances:'));
+    console.log(balancesTable.toString());
+
+    // Show totals by currency
+    const currencies = new Set();
+    ledger.entries.forEach(entry => {
+      if (typeof entry.amount === 'string') {
+        currencies.add(ledger.defaultCurrency);
+      } else if (Array.isArray(entry.amount)) {
+        entry.amount.forEach(curr => currencies.add(curr.currency));
+      }
+    });
+
+    if (currencies.size > 1 || !options.currency) {
+      const totalTable = new Table({
+        head: [chalk.cyan('Currency'), chalk.cyan('Total')]
+      });
+
+      currencies.forEach(currency => {
+        if (!options.currency || options.currency === currency) {
+          const total = ledger.getTotalBalance(currency);
+          if (total !== '0') {
+            totalTable.push([
+              chalk.yellow(currency),
+              chalk.green(total)
+            ]);
+          }
+        }
+      });
+
+      if (totalTable.length > 0) {
+        console.log(chalk.cyan('\n🧮 Totals:'));
+        console.log(totalTable.toString());
+      }
     }
   });
 
 program
-  .command('validate')
+  .command('validate [file]')
   .description('Validate ledger structure and data')
   .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
-  .action((options) => {
+  .action((file, options) => {
     displayBanner();
-    const filename = options.file || DEFAULT_LEDGER_PATH;
+    const filename = options.file || file || DEFAULT_LEDGER_PATH;
     const ledger = loadLedgerFromFile(filename);
     const validation = ledger.validate();
     displayValidation(validation);
@@ -502,12 +548,12 @@ program
   });
 
 program
-  .command('total')
+  .command('total [file]')
   .description('Calculate total balance for currency (shows all currencies if none specified)')
   .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
   .option('-c, --currency <currency>', 'currency (shows all currencies if not specified)')
-  .action((options) => {
-    const filename = options.file || DEFAULT_LEDGER_PATH;
+  .action((file, options) => {
+    const filename = options.file || file || DEFAULT_LEDGER_PATH;
     const ledger = loadLedgerFromFile(filename);
 
     if (options.currency) {

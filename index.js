@@ -1,5 +1,5 @@
 /**
- * Web Ledgers 0.1.2 - JavaScript Implementation
+ * Web Ledgers - JavaScript Implementation
  * Provides lifecycle functions for Web Ledgers as defined in the specification
  */
 
@@ -140,20 +140,22 @@ class WebLedger {
 
   /**
    * Validate the ledger structure and all entries
-   * @returns {Object} Validation result with isValid boolean and errors array
+   * @returns {Object} Validation result with isValid boolean, errors array, and warnings array
    */
   validate () {
     const errors = [];
+    const warnings = [];
 
-    // Validate required fields
+    // Validate recommended fields (warnings)
     if (!this.type || this.type !== 'WebLedger') {
-      errors.push('Invalid or missing type field');
+      warnings.push('Missing or invalid type field (recommended for JSON-LD compliance)');
     }
 
     if (!this['@context']) {
-      errors.push('Missing @context field');
+      warnings.push('Missing @context field (recommended for JSON-LD compliance)');
     }
 
+    // Validate required fields (errors)
     if (!Array.isArray(this.entries)) {
       errors.push('Entries must be an array');
     } else {
@@ -163,12 +165,16 @@ class WebLedger {
         if (!entryValidation.isValid) {
           errors.push(`Entry ${index}: ${entryValidation.errors.join(', ')}`);
         }
+        if (entryValidation.warnings && entryValidation.warnings.length > 0) {
+          warnings.push(`Entry ${index}: ${entryValidation.warnings.join(', ')}`);
+        }
       });
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      warnings
     };
   }
 
@@ -179,11 +185,14 @@ class WebLedger {
    */
   validateEntry (entry) {
     const errors = [];
+    const warnings = [];
 
+    // Validate recommended fields (warnings)
     if (!entry.type || entry.type !== 'Entry') {
-      errors.push('Invalid or missing type field');
+      warnings.push('Missing or invalid type field (recommended for JSON-LD compliance)');
     }
 
+    // Validate required fields (errors)
     if (!entry.url || !this.isValidURI(entry.url)) {
       errors.push('Invalid or missing URL field');
     }
@@ -209,7 +218,8 @@ class WebLedger {
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      warnings
     };
   }
 
@@ -361,10 +371,7 @@ function createLedger (options = {}) {
 function loadLedger (data) {
   const obj = typeof data === 'string' ? JSON.parse(data) : data;
 
-  if (obj.type !== 'WebLedger') {
-    throw new Error('Invalid ledger format: missing or incorrect type');
-  }
-
+  // Create ledger instance (type field is now optional - validated later with warnings)
   const ledger = new WebLedger({
     context: obj['@context'],
     id: obj.id,
@@ -380,6 +387,8 @@ function loadLedger (data) {
     for (const entryData of obj.entries) {
       ledger.addEntry(entryData.url, entryData.amount);
     }
+  } else if (!obj.entries) {
+    // Allow ledgers without entries array (will be caught by validation if needed)
   }
 
   return ledger;
@@ -424,7 +433,8 @@ function validateLedgerData (data) {
   } catch (error) {
     return {
       isValid: false,
-      errors: [error.message]
+      errors: [error.message],
+      warnings: []
     };
   }
 }
