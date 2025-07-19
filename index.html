@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Web Ledgers 0.1.1</title>
+    <title>Web Ledgers 0.1.2</title>
     <meta
       name="description"
       content="A specification for mapping URIs to balances on the web, enabling distributed ledger systems across platforms and protocols."
@@ -49,13 +49,6 @@
         github: 'https://github.com/solidpayorg/webledgers/',
         license: 'w3c-software-doc',
         localBiblio: {
-          TURTLE: {
-            title: 'RDF 1.1 Turtle',
-            href: 'https://www.w3.org/TR/turtle/',
-            authors: ["Eric Prud'hommeaux", 'Gavin Carothers'],
-            status: 'REC',
-            publisher: 'W3C'
-          },
           'LINKED-DATA': {
             title: 'Linked Data - Design Issues',
             href: 'https://www.w3.org/DesignIssues/LinkedData.html',
@@ -67,10 +60,6 @@
     </script>
 
     <style>
-      .turtle .hll {
-        background-color: #ffffcc;
-      }
-
       pre .highlight {
         font-weight: bold;
         color: green;
@@ -102,8 +91,7 @@
         value transfer between heterogeneous systems including social platforms,
         blockchain networks, communication protocols, and decentralized identity
         systems. The specification supports multiple serialization formats
-        (JSON, CSV, RDF) and provides extensible entry types for different use
-        cases.
+        (JSON) and provides extensible entry types for different use cases.
       </p>
 
       <p>
@@ -161,9 +149,10 @@
 
       <ul>
         <li>A core data model for representing URI-to-balance mappings</li>
-        <li>Multiple serialization formats (JSON, CSV, RDF, JSON-LD)</li>
-        <li>Flexible entry format supporting various use cases</li>
-        <li>JSON Schema validation rules</li>
+        <li>JSON-LD based serialization format</li>
+        <li>
+          Flexible amount formats supporting single or multi-currency entries
+        </li>
         <li>Interoperability guidelines for cross-platform integration</li>
       </ul>
 
@@ -316,260 +305,106 @@
     <section id="Data Model" class="Data Model">
       <h2>Data Model</h2>
 
-      The Web Ledgers data model is designed to have varying layers of
-      complexity depending on the use case. Each serialization is has different
-      trade-offs.
-
-      <h3>CSV</h3>
-
-      <p>
-        CSV is probably the most simple format possible for a web ledger. It is
-        simply a 2 column file (or database), the first column MUST be a URI,
-        and the 2nd column is a balance. It is by definition the simplest ledger
-        one can keep. The currency in this scenario is not explicity stated, but
-        assumed across the system. The default is to assume that balances are in
-        satoshis, if no other information is found.
-      </p>
-
-      <pre class="example highlight" title="Example of CSV based web ledger">
-    https://www.w3.org/People/Berners-Lee/card#i 100
-    </pre
-      >
+      The Web Ledgers data model uses JSON-LD as its primary serialization
+      format, designed to have varying layers of complexity depending on the use
+      case.
 
       <h3>JSON / JSON-LD</h3>
 
       <p>
         A structured JSON format for a ledger consists of an entries array with
         metadata and typed entries. The ledger can include a human-readable name
-        and description to provide context about its purpose and contents.
+        and description to provide context about its purpose and contents. The
+        amount field supports both simple string values (for single currency)
+        and arrays of currency objects (for multi-currency entries).
       </p>
       <pre
         class="example highlight"
         title="Example of structured JSON-based web ledger"
       >
  {
-   "context": "https://w3id.org/ledger/v1",
+   "@context": "https://w3id.org/webledgers",
    "type": "WebLedger",
    "id": "https://example.com/ledger/1",
    "name": "WebLedgers Example",
    "description": "A ledger tracking balances across multiple platforms",
    "created": 1705316200,
    "updated": 1705316200,
-   "currency": "satoshi",
+   "defaultCurrency": "satoshi",
    "entries": [
      {
        "type": "Entry",
        "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
-       "amount": "132500",
-       "timestamp": 1705316200
+       "amount": "132500"
      },
      {
        "type": "Entry", 
        "url": "https://www.w3.org/People/Berners-Lee/card#i",
-       "amount": "100000",
-       "timestamp": 1705315900
-     }
-   ],
-   "total": "232500",
-   "count": 2
- }
-    </pre
-      >
-
-      <h4>JSON Schema</h4>
-      <p>A formal JSON Schema for validation:</p>
-      <pre class="example highlight" title="JSON Schema for Web Ledger">
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "context": {
-      "type": "string",
-      "format": "uri",
-      "default": "https://w3id.org/ledger/v1"
-    },
-    "type": {
-      "type": "string",
-      "enum": ["WebLedger"]
-    },
-    "id": {
-      "type": "string",
-      "format": "uri"
-    },
-    "name": {
-      "type": "string",
-      "description": "Human-readable name for the ledger"
-    },
-    "description": {
-      "type": "string",
-      "description": "Optional description of the ledger's purpose"
-    },
-    "created": {
-      "type": "integer",
-      "description": "Unix timestamp of ledger creation"
-    },
-    "updated": {
-      "type": "integer",
-      "description": "Unix timestamp of last ledger update"
-    },
-    "currency": {
-      "type": "string",
-      "default": "satoshi"
-    },
-    "entries": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "enum": ["Entry"]
-          },
-          "url": {
-            "type": "string",
-            "format": "uri"
-          },
-          "amount": {
-            "type": "string",
-            "pattern": "^[0-9]+$"
-          },
-          "timestamp": {
-            "type": "integer",
-            "description": "Unix timestamp of entry creation"
-          }
-        },
-        "required": ["type", "url", "amount"]
-      }
-    },
-    "total": {
-      "type": "string",
-      "pattern": "^[0-9]+$"
-    },
-    "count": {
-      "type": "integer",
-      "minimum": 0
-    }
-  },
-  "required": ["type", "entries"]
-}
-    </pre
-      >
-
-      <h4>Entry Variations</h4>
-      <p>
-        All entries use the same "Entry" type but can have different properties
-        depending on their purpose:
-      </p>
-      <pre class="example highlight" title="Different entry variations">
- {
-   "context": "https://w3id.org/ledger/v1",
-   "type": "WebLedger",
-   "id": "https://gaming.example.com/ledger/tournament",
-   "name": "Gaming Tournament Rewards",
-   "description": "Prize distribution ledger for esports tournament participants",
-   "currency": "satoshi",
-   "entries": [
-     {
-       "type": "Entry",
-       "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
-       "amount": "132500",
-       "currency": "satoshi",
-       "timestamp": 1705316200
-     },
-     {
-       "type": "Entry",
-       "url": "https://www.w3.org/People/Berners-Lee/card#i",
-       "amount": "50000",
-       "currency": "satoshi",
-       "txid": "tx_789xyz",
-       "timestamp": 1705315900
-     },
-     {
-       "type": "Entry",
-       "url": "urn:voucher:1234567890abcdef",
-       "amount": "25000",
-       "expires": 1735689599,
-       "timestamp": 1705315600
+       "amount": "100000"
      }
    ]
  }
     </pre
       >
 
-      <h3>RDF</h3>
-
+      <h4>Entry Variations</h4>
       <p>
-        RDF is a framework for interoperability on the web. The serialization in
-        this example is Turtle [[TURTLE]]. Web Ledgers define a vocabulary for
-        expressing balance information in RDF.
+        All entries use the same "Entry" type but can have different properties
+        depending on their purpose. The amount field can be either a simple
+        string (for single currency in default denomination) or an array of
+        currency objects (for multi-currency entries):
       </p>
-
-      <section>
-        <h4>RDF Vocabulary</h4>
-        <p>
-          The Web Ledgers RDF vocabulary is identified by the namespace
-          <code>https://w3id.org/ledger#</code> (prefix <code>ledger:</code>).
-        </p>
-
-        <dl>
-          <dt><code>ledger:WebLedger</code></dt>
-          <dd>A class representing a Web Ledger containing balance entries.</dd>
-
-          <dt><code>ledger:name</code></dt>
-          <dd>
-            A property that provides a human-readable name for a Web Ledger. The
-            object MUST be a literal string.
-          </dd>
-
-          <dt><code>ledger:description</code></dt>
-          <dd>
-            A property that provides a human-readable description of a Web
-            Ledger's purpose. The object MUST be a literal string.
-          </dd>
-
-          <dt><code>ledger:balance</code></dt>
-          <dd>
-            A property that relates a URI to its numerical balance value. The
-            object MUST be a literal with datatype <code>xsd:decimal</code> or
-            <code>xsd:integer</code>.
-          </dd>
-
-          <dt><code>ledger:currency</code></dt>
-          <dd>
-            A property that specifies the currency denomination for a balance.
-            The object MUST be a literal string.
-          </dd>
-
-          <dt><code>ledger:timestamp</code></dt>
-          <dd>
-            A property that specifies when a balance entry was created or last
-            modified. The object MUST be a literal with datatype
-            <code>xsd:integer</code> representing a Unix timestamp.
-          </dd>
-        </dl>
-      </section>
-
-      <pre class="example highlight" title="Example of Turtle based web ledger">
- @prefix ledger: &lt;https://w3id.org/ledger#> .
- @prefix xsd: &lt;http://www.w3.org/2001/XMLSchema#> .
- 
- &lt;https://example.com/ledger/1> a ledger:WebLedger ;
-   ledger:name "Global Social Credits Ledger" ;
-   ledger:description "A ledger tracking social credits across multiple platforms" ;
-   ledger:currency "satoshi" ;
-   ledger:timestamp "1705316200"^^xsd:integer .
- 
- &lt;https://www.w3.org/People/Berners-Lee/card#i> 
-   ledger:balance "100000"^^xsd:integer ;
-   ledger:currency "satoshi" ;
-   ledger:timestamp "1705315900"^^xsd:integer .
- 
- &lt;did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645> 
-   ledger:balance "132500"^^xsd:integer ;
-   ledger:currency "satoshi" ;
-   ledger:timestamp "1705316200"^^xsd:integer .
-              </pre
+      <pre class="example highlight" title="Different entry variations">
+ {
+   "@context": "https://w3id.org/webledgers",
+   "type": "WebLedger",
+   "id": "https://gaming.example.com/ledger/tournament",
+   "name": "Gaming Tournament Rewards",
+   "description": "Prize distribution ledger for esports tournament participants",
+   "defaultCurrency": "satoshi",
+   "entries": [
+     {
+       "type": "Entry",
+       "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
+       "amount": "132500"
+     },
+     {
+       "type": "Entry",
+       "url": "https://www.w3.org/People/Berners-Lee/card#i",
+       "amount": [
+         {"currency": "satoshi", "value": "50000"},
+         {"currency": "USD", "value": "25.00"}
+       ]
+     },
+     {
+       "type": "Entry",
+       "url": "urn:voucher:1234567890abcdef",
+       "amount": [
+         {"currency": "points", "value": "100"}
+       ]
+     }
+   ]
+ }
+    </pre
       >
+
+      <h4>Amount Serialization Rules</h4>
+      <p>
+        The amount field supports flexible serialization based on the currency
+        context:
+      </p>
+      <ul>
+        <li>
+          <strong>Simple string format:</strong> Use when there is exactly one
+          balance in the ledger's defaultCurrency. Example:
+          <code>"amount": "100000"</code>
+        </li>
+        <li>
+          <strong>Array format:</strong> Use when there are multiple currencies
+          or when the currency differs from the defaultCurrency. Example:
+          <code>"amount": [{"currency": "USD", "value": "25.00"}]</code>
+        </li>
+      </ul>
 
       <h3>Named Ledger Use Cases</h3>
       <p>
@@ -580,39 +415,17 @@
       <h4>Community Reputation System</h4>
       <pre class="example highlight" title="Community reputation ledger">
 {
-  "context": "https://w3id.org/ledger/v1",
+  "@context": "https://w3id.org/webledgers",
   "type": "WebLedger",
   "id": "https://community.example.com/reputation",
   "name": "Developer Community Reputation",
   "description": "Reputation scores for open source contributors based on code contributions and peer reviews",
-  "currency": "reputation-points",
+  "defaultCurrency": "reputation-points",
   "entries": [
     {
       "type": "Entry",
       "url": "https://github.com/alice-dev#this",
-      "amount": "2750",
-      "timestamp": 1705316200
-    }
-  ]
-}
-       </pre
-      >
-
-      <h4>Carbon Credit Tracking</h4>
-      <pre class="example highlight" title="Carbon credit ledger">
-{
-  "context": "https://w3id.org/ledger/v1",
-  "type": "WebLedger",
-  "id": "https://climate.example.org/carbon-credits",
-  "name": "Verified Carbon Credits Registry",
-  "description": "Tradeable carbon credits from verified environmental projects",
-  "currency": "tCO2e",
-  "entries": [
-    {
-      "type": "Entry",
-      "url": "https://greentech.example.com/project-2024#this",
-      "amount": "1500",
-      "timestamp": 1705316200
+      "amount": "2750"
     }
   ]
 }
@@ -622,18 +435,17 @@
       <h4>Educational Achievement Tracking</h4>
       <pre class="example highlight" title="Educational achievement ledger">
 {
-  "context": "https://w3id.org/ledger/v1",
+  "@context": "https://w3id.org/webledgers",
   "type": "WebLedger",
   "id": "https://university.example.edu/course-credits",
   "name": "Computer Science Course Credits",
   "description": "Academic credit tracking for CS degree program students",
-  "currency": "credit-hours",
+  "defaultCurrency": "credit-hours",
   "entries": [
     {
       "type": "Entry",
       "url": "mailto:student@university.example.edu",
-      "amount": "120",
-      "timestamp": 1705316200
+      "amount": "120"
     }
   ]
 }
@@ -780,8 +592,7 @@
 {
   "type": "Entry",
   "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
-  "amount": "132500",
-  "timestamp": 1705316200
+  "amount": "132500"
 }
     </pre
       >
@@ -792,8 +603,7 @@
 {
   "type": "Entry",
   "url": "https://www.w3.org/People/Berners-Lee/card#i",
-  "amount": "100000",
-  "timestamp": 1705315900
+  "amount": "100000"
 }
     </pre
       >
@@ -806,8 +616,7 @@
 {
   "type": "Entry",
   "url": "https://github.com/solid-pay#this",
-  "amount": "75000",
-  "timestamp": 1705311300
+  "amount": "75000"
 }
     </pre
       >
@@ -818,8 +627,7 @@
 {
   "type": "Entry",
   "url": "https://x.com/user#this",
-  "amount": "50000",
-  "timestamp": 1705309500
+  "amount": "50000"
 }
     </pre
       >
@@ -830,8 +638,7 @@
 {
   "type": "Entry",
   "url": "https://www.youtube.com/channel/UCabcdef1234567890#this",
-  "amount": "25000",
-  "timestamp": 1705305000
+  "amount": "25000"
 }
     </pre
       >
@@ -844,8 +651,7 @@
 {
   "type": "Entry",
   "url": "mailto:timbl@w3.org",
-  "amount": "15000",
-  "timestamp": 1705301200
+  "amount": "15000"
 }
     </pre
       >
@@ -856,8 +662,7 @@
 {
   "type": "Entry",
   "url": "tel:+15550909090",
-  "amount": "10000",
-  "timestamp": 1705297800
+  "amount": "10000"
 }
     </pre
       >
@@ -870,8 +675,7 @@
 {
   "type": "Entry",
   "url": "bitcoin:1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g",
-  "amount": "2100000",
-  "timestamp": 1705294800
+  "amount": "2100000"
 }
     </pre
       >
@@ -882,8 +686,7 @@
 {
   "type": "Entry",
   "url": "txo:btc:f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16:0",
-  "amount": "5000000000",
-  "timestamp": 1705293900
+  "amount": "5000000000"
 }
     </pre
       >
@@ -896,9 +699,7 @@
 {
   "type": "Entry",
   "url": "urn:voucher:1234567890abcdef",
-  "amount": "25000",
-  "expires": 1735689599,
-  "timestamp": 1705289400
+  "amount": "25000"
 }
     </pre
       >
@@ -906,53 +707,52 @@
       <h3>Complete Ledger Example</h3>
       <p>
         A complete ledger with multiple entry variations demonstrating the full
-        data model with descriptive naming for clarity.
+        data model with descriptive naming for clarity, including both simple
+        string amounts and multi-currency arrays.
       </p>
       <pre class="example highlight" title="Complete multi-platform ledger">
  {
-   "context": "https://w3id.org/ledger/v1",
+   "@context": "https://w3id.org/webledgers",
    "type": "WebLedger",
    "id": "https://example.com/ledger/global",
    "name": "Universal Web Credits",
    "description": "Cross-platform ledger demonstrating interoperability between social networks, blockchain systems, and communication protocols",
    "created": 1705276800,
    "updated": 1705316200,
-   "currency": "satoshi",
+   "defaultCurrency": "satoshi",
   "entries": [
     {
       "type": "Entry",
       "url": "did:nostr:de7ecd1e2976a6adb2ffa5f4db81a7d812c8bb6698aa00dcf1e76adb55efd645",
-      "amount": "132500",
-      "timestamp": 1705316200
+      "amount": "132500"
     },
     {
       "type": "Entry",
       "url": "https://www.w3.org/People/Berners-Lee/card#i",
-      "amount": "100000",
-      "timestamp": 1705315900
+      "amount": [
+        {"currency": "satoshi", "value": "100000"},
+        {"currency": "USD", "value": "50.00"},
+        {"currency": "reputation-points", "value": "500"}
+      ]
     },
     {
       "type": "Entry",
       "url": "https://github.com/solid-pay#this",
-      "amount": "75000",
-      "timestamp": 1705311300
+      "amount": "75000"
     },
     {
       "type": "Entry",
       "url": "mailto:timbl@w3.org",
-      "amount": "15000",
-      "timestamp": 1705301200
+      "amount": [
+        {"currency": "EUR", "value": "12.50"}
+      ]
     },
     {
       "type": "Entry",
       "url": "urn:voucher:1234567890abcdef",
-      "amount": "25000",
-      "expires": 1735689599,
-      "timestamp": 1705289400
+      "amount": "25000"
     }
-  ],
-  "total": "347500",
-  "count": 5
+  ]
 }
     </pre
       >
@@ -984,9 +784,8 @@
 
       <p>
         This specification builds upon the foundational work of the World Wide
-        Web Consortium, particularly the URI specification [[RFC3986]], the RDF
-        framework [[RDF11-CONCEPTS]], and the JSON-LD specification
-        [[JSON-LD11]].
+        Web Consortium, particularly the URI specification [[RFC3986]] and the
+        JSON-LD specification [[JSON-LD11]].
       </p>
     </section>
   </body>
