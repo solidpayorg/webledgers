@@ -23,7 +23,6 @@
           {
             name: 'Melvin Carvalho',
             url: 'https://melvincarvalho.com/#me',
-            mailto: 'melvincarvalho@gmail.com',
             company: 'Independent',
             companyURL: 'https://melvincarvalho.com/#me'
           }
@@ -32,14 +31,13 @@
           {
             name: 'Melvin Carvalho',
             url: 'https://melvincarvalho.com/#me',
-            mailto: 'melvincarvalho@gmail.com',
             company: 'Independent',
             companyURL: 'https://melvincarvalho.com/#me'
           }
         ],
-        wg: 'W3C Web Payments Community Group',
-        wgURI: 'https://www.w3.org/community/webpayments/',
-        wgPublicList: 'public-webpayments',
+        group: 'payments',
+        groupURI: 'https://www.w3.org/community/webpayments/',
+        groupPublicList: 'public-webpayments',
         processVersion: 2023,
         edDraftURI: 'https://solidpayorg.github.io/webledgers/',
         latestVersion: 'https://solidpayorg.github.io/webledgers/',
@@ -48,6 +46,7 @@
         issueBase: 'https://github.com/solidpayorg/webledgers/issues/',
         github: 'https://github.com/solidpayorg/webledgers/',
         license: 'w3c-software-doc',
+        specStatus: 'unofficial',
         localBiblio: {
           'LINKED-DATA': {
             title: 'Linked Data - Design Issues',
@@ -256,7 +255,9 @@
       <h3>Terminology</h3>
 
       <dl class="termlist">
-        <dt><dfn lt="web ledger|web ledgers">Web Ledger</dfn></dt>
+        <dt>
+          <dfn class="export" lt="web ledger|web ledgers">Web Ledger</dfn>
+        </dt>
         <dd>
           A structured data format that maps URIs to numerical balance values,
           optionally including a human-readable name and description. A Web
@@ -264,13 +265,13 @@
           web-native identifiers.
         </dd>
 
-        <dt><dfn lt="agent|agent">Agent</dfn></dt>
+        <dt><dfn class="export" lt="agent|agent">Agent</dfn></dt>
         <dd>
           An Agent is a URI that denotes a person, machine or account on the
           web.
         </dd>
 
-        <dt><dfn lt="balance|balance">balance</dfn></dt>
+        <dt><dfn class="export" lt="balance|balance">balance</dfn></dt>
         <dd>
           Each URI maps to a balance in the Web Ledger. A balance is a numerical
           value with an explicit or implicit unit of currency. If not unit is
@@ -278,10 +279,12 @@
           bitcoin, and is equal to 1 satoshi.
         </dd>
 
-        <dt><dfn lt="currency|currency">currency</dfn></dt>
+        <dt><dfn class="export" lt="currency|currency">currency</dfn></dt>
         <dd>A currency is denomination of a given balance</dd>
 
-        <dt><dfn lt="ledger name|ledger names">Ledger Name</dfn></dt>
+        <dt>
+          <dfn class="export" lt="ledger name|ledger names">Ledger Name</dfn>
+        </dt>
         <dd>
           A human-readable string that identifies a Web Ledger. The name
           provides a friendly identifier that helps users and systems
@@ -289,7 +292,7 @@
         </dd>
 
         <dt>
-          <dfn lt="decentralized system|decentralized systems"
+          <dfn class="export" lt="decentralized system|decentralized systems"
             >decentralized system</dfn
           >
         </dt>
