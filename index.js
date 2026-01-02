@@ -29,14 +29,12 @@ class WebLedger {
    * @returns {Entry} The created entry
    */
   addEntry (url, amount) {
-    if (!this.isValidURI(url)) {
-      throw new Error('Invalid URI provided');
-    }
+    const normalizedUrl = this.normalizeURI(url);
 
-    const entry = new Entry(url, amount);
+    const entry = new Entry(normalizedUrl, amount);
 
     // Check if entry already exists and update instead
-    const existingIndex = this.entries.findIndex(e => e.url === url);
+    const existingIndex = this.entries.findIndex(e => e.url === normalizedUrl);
     if (existingIndex !== -1) {
       this.entries[existingIndex] = entry;
     } else {
@@ -109,6 +107,121 @@ class WebLedger {
     entry.amount = amount;
     this.updated = Math.floor(Date.now() / 1000);
     return entry;
+  }
+
+  /**
+   * Deposit (increment) balance for a specific URI
+   * @param {string} url - URI identifier
+   * @param {string} amount - Amount to deposit as string
+   * @param {string} currency - Currency code (optional, defaults to defaultCurrency)
+   * @returns {Entry} The created or updated entry
+   */
+  deposit (url, amount, currency = null) {
+    const normalizedUrl = this.normalizeURI(url);
+
+    if (!/^\d+(\.\d+)?$/.test(amount)) {
+      throw new Error('Amount must be a positive number');
+    }
+
+    const targetCurrency = currency || this.defaultCurrency;
+    const currentBalance = this.getBalance(normalizedUrl, targetCurrency);
+    const depositAmount = parseFloat(amount);
+    
+    if (currentBalance === null) {
+      // No existing balance, create new entry with deposit amount
+      return this.setBalance(normalizedUrl, amount, currency);
+    } else {
+      // Add to existing balance
+      const currentAmount = parseFloat(currentBalance);
+      const newAmount = (currentAmount + depositAmount).toString();
+      return this.setBalance(normalizedUrl, newAmount, currency);
+    }
+  }
+
+  /**
+   * Withdraw (decrement) balance for a specific URI
+   * @param {string} url - URI identifier
+   * @param {string} amount - Amount to withdraw as string
+   * @param {string} currency - Currency code (optional, defaults to defaultCurrency)
+   * @returns {Entry} The updated entry
+   * @throws {Error} If URI is invalid, amount is invalid, or insufficient balance
+   */
+  withdraw (url, amount, currency = null) {
+    const normalizedUrl = this.normalizeURI(url);
+
+    if (!/^\d+(\.\d+)?$/.test(amount)) {
+      throw new Error('Amount must be a positive number');
+    }
+
+    const targetCurrency = currency || this.defaultCurrency;
+    const currentBalance = this.getBalance(normalizedUrl, targetCurrency);
+    
+    if (currentBalance === null) {
+      throw new Error('No existing balance to withdraw from');
+    }
+
+    const withdrawAmount = parseFloat(amount);
+    const currentAmount = parseFloat(currentBalance);
+    
+    if (currentAmount < withdrawAmount) {
+      throw new Error('Insufficient balance for withdrawal');
+    }
+
+    const newAmount = (currentAmount - withdrawAmount).toString();
+    return this.setBalance(normalizedUrl, newAmount, currency);
+  }
+
+  /**
+   * Set the balance for a specific URI
+   * @param {string} url - URI identifier
+   * @param {string} amount - Balance amount as string
+   * @param {string} currency - Currency code (optional, defaults to defaultCurrency)
+   * @returns {Entry} The created or updated entry
+   */
+  setBalance (url, amount, currency = null) {
+    const normalizedUrl = this.normalizeURI(url);
+
+    if (!/^\d+(\.\d+)?$/.test(amount)) {
+      throw new Error('Amount must be a positive number');
+    }
+
+    const targetCurrency = currency || this.defaultCurrency;
+    const entry = this.getEntry(normalizedUrl);
+
+    if (!entry) {
+      // Create new entry
+      if (targetCurrency === this.defaultCurrency) {
+        // Use simple string format for default currency
+        return this.addEntry(normalizedUrl, amount);
+      } else {
+        // Use multi-currency array format for non-default currency
+        return this.addEntry(normalizedUrl, [{ currency: targetCurrency, value: amount }]);
+      }
+    } else {
+      // Update existing entry
+      if (targetCurrency === this.defaultCurrency && typeof entry.amount === 'string') {
+        // Simple case: updating default currency with string format
+        entry.amount = amount;
+      } else if (Array.isArray(entry.amount)) {
+        // Multi-currency format: update or add currency
+        const currencyIndex = entry.amount.findIndex(a => a.currency === targetCurrency);
+        if (currencyIndex !== -1) {
+          entry.amount[currencyIndex].value = amount;
+        } else {
+          entry.amount.push({ currency: targetCurrency, value: amount });
+        }
+      } else {
+        // Convert from string to multi-currency format
+        const oldAmount = entry.amount;
+        entry.amount = [
+          { currency: this.defaultCurrency, value: oldAmount },
+          { currency: targetCurrency, value: amount }
+        ];
+      }
+
+      this.updated = Math.floor(Date.now() / 1000);
+      return entry;
+    }
   }
 
   /**
@@ -193,7 +306,8 @@ class WebLedger {
     }
 
     // Validate required fields (errors)
-    if (!entry.url || !this.isValidURI(entry.url)) {
+    // Accept any non-empty string - normalizeURI will prefix with urn:local: if needed
+    if (!entry.url || typeof entry.url !== 'string' || entry.url.trim() === '') {
       errors.push('Invalid or missing URL field');
     }
 
@@ -239,24 +353,52 @@ class WebLedger {
   }
 
   /**
+   * Normalize a URI, auto-prefixing bare names with urn:local:
+   * @param {string} uri - URI or bare name to normalize
+   * @returns {string} Normalized URI
+   */
+  normalizeURI (uri) {
+    if (!uri || typeof uri !== 'string') {
+      throw new Error('URI must be a non-empty string');
+    }
+    // If it already looks like a URI (contains colon with scheme), return as-is
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(uri)) {
+      return uri;
+    }
+    // Otherwise, prefix with urn:local:
+    return `urn:local:${uri}`;
+  }
+
+  /**
    * Serialize the ledger to JSON-LD format
    * @param {boolean} pretty - Whether to pretty-print the JSON
    * @returns {string} JSON-LD representation
    */
   toJSON (pretty = false) {
-    const obj = {
-      '@context': this['@context'],
-      type: this.type,
-      ...(this.id && { id: this.id }),
-      ...(this.name && { name: this.name }),
-      ...(this.description && { description: this.description }),
-      created: this.created,
-      updated: this.updated,
-      defaultCurrency: this.defaultCurrency,
-      entries: this.entries
+    // Start with all existing properties to preserve custom fields
+    const obj = { ...this };
+
+    // Ensure core fields are properly set and in correct order
+    const orderedObj = {
+      '@context': obj['@context'],
+      type: obj.type,
+      ...(obj.id && { id: obj.id }),
+      ...(obj.name && { name: obj.name }),
+      ...(obj.description && { description: obj.description }),
+      created: obj.created,
+      updated: obj.updated,
+      defaultCurrency: obj.defaultCurrency,
+      // Include all other properties that aren't the core fields
+      ...Object.fromEntries(
+        Object.entries(obj).filter(([key]) =>
+          !['@context', 'type', 'id', 'name', 'description', 'created', 'updated', 'defaultCurrency', 'entries'].includes(key)
+        )
+      ),
+      // Entries come last
+      entries: obj.entries
     };
 
-    return pretty ? JSON.stringify(obj, null, 2) : JSON.stringify(obj);
+    return pretty ? JSON.stringify(orderedObj, null, 2) : JSON.stringify(orderedObj);
   }
 
   /**
@@ -381,6 +523,14 @@ function loadLedger (data) {
     updated: obj.updated,
     defaultCurrency: obj.defaultCurrency
   });
+
+  // Preserve all custom fields that aren't core WebLedger fields
+  const coreFields = ['@context', 'type', 'id', 'name', 'description', 'created', 'updated', 'defaultCurrency', 'entries'];
+  for (const [key, value] of Object.entries(obj)) {
+    if (!coreFields.includes(key)) {
+      ledger[key] = value;
+    }
+  }
 
   // Add entries
   if (obj.entries && Array.isArray(obj.entries)) {

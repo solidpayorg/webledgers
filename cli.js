@@ -138,6 +138,18 @@ function loadLedgerFromFile (filename) {
     }
 
     const data = fs.readFileSync(filename, 'utf8');
+    
+    // Handle empty file - create new ledger with defaults
+    if (!data || data.trim() === '') {
+      spinner.info(chalk.yellow(`Empty file found, creating new ledger`));
+      const ledger = createLedger({
+        name: 'Web Ledger',
+        defaultCurrency: 'satoshi',
+        id: `urn:ledger:${generateLedgerId()}`
+      });
+      return ledger;
+    }
+
     const ledger = loadLedger(JSON.parse(data));
     spinner.succeed(chalk.green(`Ledger loaded from ${filename}`));
     return ledger;
@@ -313,6 +325,180 @@ async function addEntryWizard (ledger) {
 }
 
 /**
+ * Interactive wizard for depositing to balance
+ */
+async function depositWizard (ledger) {
+  console.log(chalk.cyan('\n💰 Deposit Wizard\n'));
+
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'url',
+      message: chalk.yellow('Enter the URI:'),
+      validate: input => {
+        if (!input.length) return 'URI is required';
+        try {
+          return ledger.isValidURI(input) || 'Invalid URI format';
+        } catch {
+          return 'Invalid URI format';
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'amount',
+      message: chalk.yellow('Enter the deposit amount:'),
+      validate: input => /^\d+(\.\d+)?$/.test(input) || 'Amount must be a positive number'
+    },
+    {
+      type: 'input',
+      name: 'currency',
+      message: chalk.yellow(`Enter currency (leave empty for default: ${ledger.defaultCurrency}):`),
+      default: ''
+    }
+  ]);
+
+  const currency = answers.currency.trim() || null;
+
+  try {
+    const entry = ledger.deposit(answers.url, answers.amount, currency);
+    console.log(chalk.green('\n✅ Deposit successful!'));
+
+    // Show the updated entry
+    const entryTable = new Table({
+      head: [chalk.cyan('Property'), chalk.cyan('Value')]
+    });
+
+    entryTable.push(
+      ['URI', entry.url],
+      ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+    );
+
+    console.log(entryTable.toString());
+    return entry;
+  } catch (error) {
+    console.log(chalk.red(`\n❌ Failed to deposit: ${error.message}`));
+    throw error;
+  }
+}
+
+/**
+ * Interactive wizard for withdrawing from balance
+ */
+async function withdrawWizard (ledger) {
+  console.log(chalk.cyan('\n💸 Withdraw Wizard\n'));
+
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'url',
+      message: chalk.yellow('Enter the URI:'),
+      validate: input => {
+        if (!input.length) return 'URI is required';
+        try {
+          return ledger.isValidURI(input) || 'Invalid URI format';
+        } catch {
+          return 'Invalid URI format';
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'amount',
+      message: chalk.yellow('Enter the withdrawal amount:'),
+      validate: input => /^\d+(\.\d+)?$/.test(input) || 'Amount must be a positive number'
+    },
+    {
+      type: 'input',
+      name: 'currency',
+      message: chalk.yellow(`Enter currency (leave empty for default: ${ledger.defaultCurrency}):`),
+      default: ''
+    }
+  ]);
+
+  const currency = answers.currency.trim() || null;
+
+  try {
+    const entry = ledger.withdraw(answers.url, answers.amount, currency);
+    console.log(chalk.green('\n✅ Withdrawal successful!'));
+
+    // Show the updated entry
+    const entryTable = new Table({
+      head: [chalk.cyan('Property'), chalk.cyan('Value')]
+    });
+
+    entryTable.push(
+      ['URI', entry.url],
+      ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+    );
+
+    console.log(entryTable.toString());
+    return entry;
+  } catch (error) {
+    console.log(chalk.red(`\n❌ Failed to withdraw: ${error.message}`));
+    throw error;
+  }
+}
+
+/**
+ * Interactive wizard for setting balance
+ */
+async function setBalanceWizard (ledger) {
+  console.log(chalk.cyan('\n⚖️  Set Balance Wizard\n'));
+
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'url',
+      message: chalk.yellow('Enter the URI:'),
+      validate: input => {
+        if (!input.length) return 'URI is required';
+        try {
+          return ledger.isValidURI(input) || 'Invalid URI format';
+        } catch {
+          return 'Invalid URI format';
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'amount',
+      message: chalk.yellow('Enter the amount:'),
+      validate: input => /^\d+(\.\d+)?$/.test(input) || 'Amount must be a positive number'
+    },
+    {
+      type: 'input',
+      name: 'currency',
+      message: chalk.yellow(`Enter currency (leave empty for default: ${ledger.defaultCurrency}):`),
+      default: ''
+    }
+  ]);
+
+  const currency = answers.currency.trim() || null;
+
+  try {
+    const entry = ledger.setBalance(answers.url, answers.amount, currency);
+    console.log(chalk.green('\n✅ Balance set successfully!'));
+
+    // Show the updated entry
+    const entryTable = new Table({
+      head: [chalk.cyan('Property'), chalk.cyan('Value')]
+    });
+
+    entryTable.push(
+      ['URI', entry.url],
+      ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+    );
+
+    console.log(entryTable.toString());
+    return entry;
+  } catch (error) {
+    console.log(chalk.red(`\n❌ Failed to set balance: ${error.message}`));
+    throw error;
+  }
+}
+
+/**
  * Interactive balance query wizard
  */
 async function queryBalanceWizard (ledger) {
@@ -411,6 +597,174 @@ program
       ]);
 
       addMore = continueAnswer.continue;
+    }
+
+    saveLedger(ledger, filename);
+    console.log(chalk.cyan('\nUpdated ledger:'));
+    displayLedger(ledger);
+  });
+
+program
+  .command('deposit [uri] [amount] [currency]')
+  .description('Deposit (increment) balance for a specific URI')
+  .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
+  .option('-u, --uri <uri>', 'URI to deposit to')
+  .option('-a, --amount <amount>', 'deposit amount')
+  .option('-c, --currency <currency>', 'currency (optional, uses ledger default if not specified)')
+  .action(async (uri, amount, currency, options) => {
+    displayBanner();
+    const filename = options.file || DEFAULT_LEDGER_PATH;
+    const ledger = loadLedgerFromFile(filename);
+
+    // Use command line arguments if provided, otherwise use options, otherwise interactive
+    const targetUri = uri || options.uri;
+    const targetAmount = amount || options.amount;
+    const targetCurrency = currency || options.currency || null;
+
+    if (targetUri && targetAmount) {
+      // Non-interactive mode
+      try {
+        // Normalize URI (auto-prefix bare names with urn:local:)
+        const normalizedUri = ledger.normalizeURI(targetUri);
+
+        if (!/^\d+(\.\d+)?$/.test(targetAmount)) {
+          console.log(chalk.red('❌ Amount must be a positive number'));
+          process.exit(1);
+        }
+
+        const entry = ledger.deposit(normalizedUri, targetAmount, targetCurrency);
+        console.log(chalk.green(`✅ Deposited ${targetAmount} ${targetCurrency || ledger.defaultCurrency} to ${normalizedUri}`));
+
+        // Show the updated entry
+        const entryTable = new Table({
+          head: [chalk.cyan('Property'), chalk.cyan('Value')]
+        });
+
+        entryTable.push(
+          ['URI', entry.url],
+          ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+        );
+
+        console.log(entryTable.toString());
+      } catch (error) {
+        console.log(chalk.red(`❌ Error: ${error.message}`));
+        process.exit(1);
+      }
+    } else {
+      // Interactive mode
+      await depositWizard(ledger);
+    }
+
+    saveLedger(ledger, filename);
+    console.log(chalk.cyan('\nUpdated ledger:'));
+    displayLedger(ledger);
+  });
+
+program
+  .command('withdraw [uri] [amount] [currency]')
+  .description('Withdraw (decrement) balance for a specific URI')
+  .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
+  .option('-u, --uri <uri>', 'URI to withdraw from')
+  .option('-a, --amount <amount>', 'withdrawal amount')
+  .option('-c, --currency <currency>', 'currency (optional, uses ledger default if not specified)')
+  .action(async (uri, amount, currency, options) => {
+    displayBanner();
+    const filename = options.file || DEFAULT_LEDGER_PATH;
+    const ledger = loadLedgerFromFile(filename);
+
+    // Use command line arguments if provided, otherwise use options, otherwise interactive
+    const targetUri = uri || options.uri;
+    const targetAmount = amount || options.amount;
+    const targetCurrency = currency || options.currency || null;
+
+    if (targetUri && targetAmount) {
+      // Non-interactive mode
+      try {
+        // Normalize URI (auto-prefix bare names with urn:local:)
+        const normalizedUri = ledger.normalizeURI(targetUri);
+
+        if (!/^\d+(\.\d+)?$/.test(targetAmount)) {
+          console.log(chalk.red('❌ Amount must be a positive number'));
+          process.exit(1);
+        }
+
+        const entry = ledger.withdraw(normalizedUri, targetAmount, targetCurrency);
+        console.log(chalk.green(`✅ Withdrew ${targetAmount} ${targetCurrency || ledger.defaultCurrency} from ${normalizedUri}`));
+
+        // Show the updated entry
+        const entryTable = new Table({
+          head: [chalk.cyan('Property'), chalk.cyan('Value')]
+        });
+
+        entryTable.push(
+          ['URI', entry.url],
+          ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+        );
+
+        console.log(entryTable.toString());
+      } catch (error) {
+        console.log(chalk.red(`❌ Error: ${error.message}`));
+        process.exit(1);
+      }
+    } else {
+      // Interactive mode
+      await withdrawWizard(ledger);
+    }
+
+    saveLedger(ledger, filename);
+    console.log(chalk.cyan('\nUpdated ledger:'));
+    displayLedger(ledger);
+  });
+
+program
+  .command('set-balance [uri] [amount] [currency]')
+  .description('Set balance for a specific URI')
+  .option('-f, --file <file>', `ledger file (default: ${DEFAULT_LEDGER_PATH})`)
+  .option('-u, --uri <uri>', 'URI to set balance for')
+  .option('-a, --amount <amount>', 'balance amount')
+  .option('-c, --currency <currency>', 'currency (optional, uses ledger default if not specified)')
+  .action(async (uri, amount, currency, options) => {
+    displayBanner();
+    const filename = options.file || DEFAULT_LEDGER_PATH;
+    const ledger = loadLedgerFromFile(filename);
+
+    // Use command line arguments if provided, otherwise use options, otherwise interactive
+    const targetUri = uri || options.uri;
+    const targetAmount = amount || options.amount;
+    const targetCurrency = currency || options.currency || null;
+
+    if (targetUri && targetAmount) {
+      // Non-interactive mode
+      try {
+        // Normalize URI (auto-prefix bare names with urn:local:)
+        const normalizedUri = ledger.normalizeURI(targetUri);
+
+        if (!/^\d+(\.\d+)?$/.test(targetAmount)) {
+          console.log(chalk.red('❌ Amount must be a positive number'));
+          process.exit(1);
+        }
+
+        const entry = ledger.setBalance(normalizedUri, targetAmount, targetCurrency);
+        console.log(chalk.green(`✅ Set balance for ${normalizedUri} to ${targetAmount} ${targetCurrency || ledger.defaultCurrency}`));
+
+        // Show the updated entry
+        const entryTable = new Table({
+          head: [chalk.cyan('Property'), chalk.cyan('Value')]
+        });
+
+        entryTable.push(
+          ['URI', entry.url],
+          ['Amount', typeof entry.amount === 'string' ? entry.amount : JSON.stringify(entry.amount, null, 2)]
+        );
+
+        console.log(entryTable.toString());
+      } catch (error) {
+        console.log(chalk.red(`❌ Error: ${error.message}`));
+        process.exit(1);
+      }
+    } else {
+      // Interactive mode
+      await setBalanceWizard(ledger);
     }
 
     saveLedger(ledger, filename);
@@ -723,6 +1077,9 @@ program
             { name: '📂 Load existing ledger', value: 'load' },
             ...(ledger ? [
               { name: '➕ Add entry', value: 'add' },
+              { name: '💰 Deposit to balance', value: 'deposit' },
+              { name: '💸 Withdraw from balance', value: 'withdraw' },
+              { name: '⚖️ Set balance', value: 'setBalance' },
               { name: '👀 Show ledger', value: 'show' },
               { name: '🔍 Query balance', value: 'query' },
               { name: '🧮 Show totals', value: 'totals' },
@@ -755,6 +1112,18 @@ program
 
         case 'add':
           await addEntryWizard(ledger);
+          break;
+
+        case 'deposit':
+          await depositWizard(ledger);
+          break;
+
+        case 'withdraw':
+          await withdrawWizard(ledger);
+          break;
+
+        case 'setBalance':
+          await setBalanceWizard(ledger);
           break;
 
         case 'show':

@@ -1,13 +1,13 @@
 {
   "name": "webledgers",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Web Ledgers - URI-to-balance mapping system for distributed ledgers",
   "main": "index.js",
   "bin": {
     "webledgers": "./cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node test.js",
     "cli": "node cli.js",
     "interactive": "node cli.js interactive"
   },
