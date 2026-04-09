@@ -125,6 +125,15 @@ webledgers create
 # Add entries to existing ledger
 webledgers add
 
+# Deposit (increment) balance
+webledgers deposit
+
+# Withdraw (decrement) balance  
+webledgers withdraw
+
+# Set balance for a specific URI
+webledgers set-balance
+
 # View all balances
 webledgers balance
 
@@ -171,6 +180,105 @@ Add entries to an existing ledger.
 ```bash
 webledgers add
 webledgers add my-ledger.json
+```
+
+#### `webledgers deposit [uri] [amount] [currency] [options]`
+
+Deposit (increment) balance for a specific URI. Adds the amount to the existing balance.
+
+**Arguments:**
+
+- `uri` - URI to deposit to (optional, prompts if not provided)
+- `amount` - Deposit amount (optional, prompts if not provided)
+- `currency` - Currency code (optional, uses ledger default if not specified)
+
+**Options:**
+
+- `-f, --file <file>` - Ledger file path
+- `-u, --uri <uri>` - URI to deposit to (alternative to positional argument)
+- `-a, --amount <amount>` - Deposit amount (alternative to positional argument)
+- `-c, --currency <currency>` - Currency code (alternative to positional argument)
+
+**Examples:**
+
+```bash
+# Interactive mode (prompts for inputs)
+webledgers deposit
+
+# Using positional arguments
+webledgers deposit "https://github.com/user#this" "1000"
+webledgers deposit "https://github.com/user#this" "25.50" "USD"
+
+# Using option flags
+webledgers deposit --uri "https://github.com/user#this" --amount "1000"
+webledgers deposit -u "mailto:user@example.com" -a "50.00" -c "EUR"
+```
+
+#### `webledgers withdraw [uri] [amount] [currency] [options]`
+
+Withdraw (decrement) balance for a specific URI. Subtracts the amount from the existing balance.
+
+**Arguments:**
+
+- `uri` - URI to withdraw from (optional, prompts if not provided)
+- `amount` - Withdrawal amount (optional, prompts if not provided)
+- `currency` - Currency code (optional, uses ledger default if not specified)
+
+**Options:**
+
+- `-f, --file <file>` - Ledger file path
+- `-u, --uri <uri>` - URI to withdraw from (alternative to positional argument)
+- `-a, --amount <amount>` - Withdrawal amount (alternative to positional argument)
+- `-c, --currency <currency>` - Currency code (alternative to positional argument)
+
+**Examples:**
+
+```bash
+# Interactive mode (prompts for inputs)
+webledgers withdraw
+
+# Using positional arguments
+webledgers withdraw "https://github.com/user#this" "500"
+webledgers withdraw "https://github.com/user#this" "10.25" "USD"
+
+# Using option flags
+webledgers withdraw --uri "https://github.com/user#this" --amount "500"
+webledgers withdraw -u "mailto:user@example.com" -a "25.00" -c "EUR"
+```
+
+#### `webledgers set-balance [uri] [amount] [currency] [options]`
+
+Set balance for a specific URI. Creates a new entry if it doesn't exist, or updates an existing entry.
+
+**Arguments:**
+
+- `uri` - URI to set balance for (optional, prompts if not provided)
+- `amount` - Balance amount (optional, prompts if not provided)
+- `currency` - Currency code (optional, uses ledger default if not specified)
+
+**Options:**
+
+- `-f, --file <file>` - Ledger file path
+- `-u, --uri <uri>` - URI to set balance for (alternative to positional argument)
+- `-a, --amount <amount>` - Balance amount (alternative to positional argument)
+- `-c, --currency <currency>` - Currency code (alternative to positional argument)
+
+**Examples:**
+
+```bash
+# Interactive mode (prompts for inputs)
+webledgers set-balance
+
+# Using positional arguments
+webledgers set-balance "https://github.com/user#this" "10000"
+webledgers set-balance "https://github.com/user#this" "25.50" "USD"
+
+# Using option flags
+webledgers set-balance --uri "https://github.com/user#this" --amount "10000"
+webledgers set-balance -u "mailto:user@example.com" -a "50.00" -c "EUR"
+
+# With custom ledger file
+webledgers set-balance "https://github.com/user#this" "10000" -f my-ledger.json
 ```
 
 #### `webledgers balance [file] [options]`
@@ -398,6 +506,15 @@ const entry = ledger.getEntry(uri)
 
 // Update balance
 const updated = ledger.updateBalance(uri, newAmount)
+
+// Deposit (increment) balance
+const entry = ledger.deposit(uri, amount, currency) // currency optional
+
+// Withdraw (decrement) balance
+const entry = ledger.withdraw(uri, amount, currency) // currency optional
+
+// Set balance (creates entry if not exists, updates if exists)
+const entry = ledger.setBalance(uri, amount, currency) // currency optional
 ```
 
 #### Querying

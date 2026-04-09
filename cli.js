@@ -144,7 +144,7 @@ function loadLedgerFromFile (filename) {
       spinner.info(chalk.yellow(`Empty file found, creating new ledger`));
       const ledger = createLedger({
         name: 'Web Ledger',
-        defaultCurrency: 'satoshi',
+        defaultCurrency: 'btc',
         id: `urn:ledger:${generateLedgerId()}`
       });
       return ledger;
@@ -182,6 +182,7 @@ async function createLedgerWizard () {
       name: 'defaultCurrency',
       message: chalk.yellow('Choose default currency:'),
       choices: [
+        { name: '₿ Bitcoin (btc)', value: 'btc' },
         { name: '₿ Bitcoin (satoshi)', value: 'satoshi' },
         { name: '💵 US Dollar (USD)', value: 'USD' },
         { name: '💶 Euro (EUR)', value: 'EUR' },
